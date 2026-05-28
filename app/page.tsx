@@ -127,7 +127,7 @@ export default function Home() {
   }, []);
 
   return (
-    <>
+    <div className="overflow-x-hidden w-full relative">
       <section className="hero-slider reveal-block reveal-block--from-right" aria-label="Presentacion principal VOR Enterprise">
         <div className="hero-slider__content">
           <h1 className="hero-slider__title">
@@ -160,7 +160,7 @@ export default function Home() {
           </a>
         </div>
 
-        <div className="hero-slider__media" aria-label="Carrusel de imagenes destacadas">
+        <div className="hero-slider__media hidden md:block" aria-label="Carrusel de imagenes destacadas">
           {HERO_SLIDES.map((slide, index) => (
             <Image
               key={slide.src}
@@ -617,6 +617,6 @@ export default function Home() {
           </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
