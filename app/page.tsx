@@ -84,6 +84,7 @@ export default function Home() {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
             return;
+            observer.unobserve(entry.target); // Deja de observar una vez que es visible
           }
 
           entry.target.classList.remove("is-visible");
@@ -110,6 +111,7 @@ export default function Home() {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
             return;
+            observer.unobserve(entry.target); // Deja de observar una vez que es visible
           }
 
           entry.target.classList.remove("is-visible");
