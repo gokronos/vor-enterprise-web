@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="182" height="36" viewBox="0 0 182 36" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4DE3FF"/>
+      <stop offset="100%" stop-color="#1BB8F3"/>
+    </linearGradient>
+  </defs>
+  <path d="M18 3 2 33h9.4L18 20.9 24.6 33H34L18 3Z" fill="url(#g1)"/>
+  <path d="M18 9.5 8.5 27h5.7L18 20l3.8 7h5.7L18 9.5Z" fill="#D5EEFF" opacity=".9"/>
+  <text x="42" y="20" fill="#E7F4FF" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="1.6">VOR</text>
+  <text x="43" y="31" fill="#7CA7C8" font-family="Arial, sans-serif" font-size="7" font-weight="700" letter-spacing="1.2">ENTERPRISE</text>
+</svg>
