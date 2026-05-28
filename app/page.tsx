@@ -83,11 +83,8 @@ export default function Home() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
-            return;
-            observer.unobserve(entry.target); // Deja de observar una vez que es visible
+            observer.unobserve(entry.target);
           }
-
-          entry.target.classList.remove("is-visible");
         });
       },
       {
@@ -110,11 +107,8 @@ export default function Home() {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add("is-visible");
-            return;
-            observer.unobserve(entry.target); // Deja de observar una vez que es visible
+            observer.unobserve(entry.target);
           }
-
-          entry.target.classList.remove("is-visible");
         });
       },
       {
@@ -129,7 +123,7 @@ export default function Home() {
   }, []);
 
   return (
-    <> {/* Se revierte a React.Fragment para eliminar overflow-x-hidden del contenedor principal */}
+    <div className="overflow-x-hidden w-full relative">
       <section className="hero-slider reveal-block reveal-block--from-right" aria-label="Presentacion principal VOR Enterprise">
         <div className="hero-slider__content">
           <h1 className="hero-slider__title">
@@ -619,6 +613,6 @@ export default function Home() {
           </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 }
