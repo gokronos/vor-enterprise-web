@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
-export default function KycResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const id = useMemo(() => Number(searchParams.get("id") || ""), [searchParams]);
   const token = useMemo(() => searchParams.get("token") || "", [searchParams]);
@@ -117,5 +117,13 @@ export default function KycResetPasswordPage() {
         </p>
       </section>
     </main>
+  );
+}
+
+export default function KycResetPasswordPage() {
+  return (
+    <Suspense fallback={<main className="kyc-picker-page"><h2>Cargando formulario...</h2></main>}>
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
