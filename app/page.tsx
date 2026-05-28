@@ -123,14 +123,14 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full relative"> {/* Eliminamos overflow-x-hidden de este div */}
-      {/* Agregamos estilos globales para prevenir el scroll horizontal y ocultar la barra */}
+    <div className="w-full relative overflow-x-hidden">
       <style jsx global>{`
-        body {
-          overflow-x: hidden; /* Previene el scroll horizontal en toda la página */
-          scrollbar-width: none; /* Para Firefox */
+        /* Bloqueamos el scroll horizontal globalmente sin ocultar la barra vertical */
+        html, body {
+          max-width: 100%;
+          overflow-x: hidden;
+          position: relative;
         }
-        body::-webkit-scrollbar { display: none; /* Para Chrome, Safari, Edge */ }
       `}</style>
       <section className="hero-slider reveal-block reveal-block--from-right" aria-label="Presentacion principal VOR Enterprise">
         <div className="hero-slider__content">
