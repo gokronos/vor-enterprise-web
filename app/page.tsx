@@ -123,13 +123,11 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full relative overflow-x-hidden">
+    <div className="w-full relative">
       <style jsx global>{`
-        /* Bloqueamos el scroll horizontal globalmente sin ocultar la barra vertical */
-        html, body {
-          max-width: 100%;
+        /* Aplicamos el bloqueo solo al body para evitar la doble barra en escritorio */
+        body {
           overflow-x: hidden;
-          position: relative;
         }
       `}</style>
       <section className="hero-slider reveal-block reveal-block--from-right" aria-label="Presentacion principal VOR Enterprise">
