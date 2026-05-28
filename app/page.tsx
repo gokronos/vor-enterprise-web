@@ -127,7 +127,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="overflow-x-hidden w-full relative">
+    <> {/* Se revierte a React.Fragment para eliminar overflow-x-hidden del contenedor principal */}
       <section className="hero-slider reveal-block reveal-block--from-right" aria-label="Presentacion principal VOR Enterprise">
         <div className="hero-slider__content">
           <h1 className="hero-slider__title">
@@ -617,6 +617,6 @@ export default function Home() {
           </div>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }
