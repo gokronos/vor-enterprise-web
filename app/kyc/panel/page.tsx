@@ -1135,7 +1135,17 @@ export default function KycPanelPage() {
                         onClick={() => openPdfPreview(activeDocument.title, activeDocument.url as string)}
                       >
                         Ver PDF en ventana flotante
+                        Expandir visor
                       </button>
+                      <a
+                        href={activeDocument.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="kyc-doc-nav-btn"
+                        style={{ display: "inline-block", marginTop: "10px", textDecoration: "none", textAlign: "center", width: "100%" }}
+                      >
+                        Ver PDF (Opción para móviles)
+                      </a>
                     </>
                   ) : (
                     <span>No hay documento cargado para esta categoría.</span>
@@ -1314,6 +1324,17 @@ export default function KycPanelPage() {
               </button>
             </header>
             <iframe src={pdfPreview.url} title={pdfPreview.title} className="kyc-pdf-float-frame" />
+            <div style={{ padding: "12px", textAlign: "center", background: "rgba(255,255,255,0.05)" }}>
+              <a
+                href={pdfPreview.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="kyc-doc-nav-btn"
+                style={{ textDecoration: "none", fontSize: "14px" }}
+              >
+                ¿Problemas para ver? Abrir PDF en pantalla completa
+              </a>
+            </div>
           </section>
         </div>
       ) : null}
