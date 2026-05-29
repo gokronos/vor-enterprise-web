@@ -154,7 +154,7 @@ export default function Home() {
 
           <a
             className="hero-slider__cta"
-            href="https://wa.me/573000000000"
+            href="https://wa.me/573170237112"
             target="_blank"
             rel="noopener noreferrer"
           >
