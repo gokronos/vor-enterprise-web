@@ -260,6 +260,14 @@ export default function Home() {
               </h2>
 
               <article className="service-card">
+                <h3 className="service-card__title subtitle-highlight">Proveedor de Servicios de Activos Virtuales - PSAV</h3>
+                <p className="service-card__text">
+                  Compra, venta, intercambio y custodia de activos virtuales. Todas las operaciones se diseñan bajo
+                  procesos estrictos de trazabilidad conforme a las normativas de control.
+                </p>
+              </article>
+
+              <article className="service-card">
                 <h3 className="service-card__title subtitle-highlight">Arquitectura y Programación de Software</h3>
                 <p className="service-card__text">
                   Análisis, diseño, documentación e implementación de sistemas informáticos modulares, plataformas
