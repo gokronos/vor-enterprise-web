@@ -1128,25 +1128,34 @@ export default function KycPanelPage() {
                   <p>{activeDocument.title}</p>
                   {activeDocument.url ? (
                     <>
+                    <div className="kyc-doc-viewer-container" style={{ position: "relative", background: "#f5f5f5", borderRadius: "8px", overflow: "hidden", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
                       <iframe src={activeDocument.url} title={activeDocument.title} className="kyc-doc-frame" />
                       <button
                         type="button"
-                        className="kyc-doc-link"
-                        onClick={() => openPdfPreview(activeDocument.title, activeDocument.url as string)}
-                      >
-                        Ver PDF en ventana flotante
-                        Expandir visor
-                      </button>
+                      <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "8px" }}>
+                        <button
+                          type="button"
+                          className="kyc-doc-nav-btn"
+                          style={{ padding: "6px 12px", fontSize: "12px", background: "rgba(0, 240, 255, 0.9)", color: "#000", border: "none" }}
+                          onClick={() => openPdfPreview(activeDocument.title, activeDocument.url as string)}
+                        >
+                          🔍 Pantalla Completa
+                        </button>
+                      </div>
                       <a
                         href={activeDocument.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="kyc-doc-nav-btn"
-                        style={{ display: "inline-block", marginTop: "10px", textDecoration: "none", textAlign: "center", width: "100%" }}
+                        className="kyc-doc-link"
+                        onClick={() => openPdfPreview(activeDocument.title, activeDocument.url as string)}
+                        style={{ display: "block", padding: "12px", textAlign: "center", background: "#111", borderTop: "1px solid #333", fontSize: "13px" }}
                       >
-                        Ver PDF (Opción para móviles)
-                      </a>
+                        Ver PDF en ventana flotante
+                      </button>
                     </>
+                        ¿No puedes ver el documento? Toca aquí para abrirlo
+                      </a>
+                    </div>
                   ) : (
                     <span>No hay documento cargado para esta categoría.</span>
                   )}
