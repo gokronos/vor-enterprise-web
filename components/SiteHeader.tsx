@@ -54,7 +54,7 @@ export default function SiteHeader() {
 
         <a
           className="whatsapp-cta"
-          href="https://wa.me/573000000000"
+          href="https://wa.me/573170237112"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Contactanos por WhatsApp"
@@ -88,7 +88,7 @@ export default function SiteHeader() {
           ))}
           <a
             className="mobile-wa"
-            href="https://wa.me/573000000000"
+            href="https://wa.me/573170237112"
             target="_blank"
             rel="noopener noreferrer"
             onClick={closeMenu}
