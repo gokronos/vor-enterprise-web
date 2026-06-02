@@ -257,6 +257,8 @@ export default function KycPanelPage() {
         fullName: parsed.fullName || "",
         documentNumber: parsed.documentNumber || "",
         nationality: parsed.nationality || "",
+        departmentId: parsed.departmentId || null,
+        municipalityId: parsed.municipalityId || null,
         city: parsed.city || "",
         address: parsed.address || "",
         email: parsed.email || "",
