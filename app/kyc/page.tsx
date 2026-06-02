@@ -8,6 +8,8 @@ type NaturalKycForm = {
   idNumber: string;
   idType: string;
   nationality: string;
+  departmentId: string;
+  municipalityId: string;
   city: string;
   address: string;
   email: string;
@@ -41,6 +43,8 @@ const initialNaturalForm: NaturalKycForm = {
   idNumber: "",
   idType: "",
   nationality: "",
+  departmentId: "",
+  municipalityId: "",
   city: "",
   address: "",
   email: "",
@@ -92,6 +96,8 @@ export default function KycPage() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotMessage, setForgotMessage] = useState("");
   const [forgotError, setForgotError] = useState("");
+  const [departments, setDepartments] = useState<Array<{ id: number; code: string; name: string }>>([]);
+  const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string }>>([]);
 
   useEffect(() => {
     if (!showNaturalModal && !showJuridicalModal && !showRegisterSuccess) {
@@ -109,6 +115,35 @@ export default function KycPage() {
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
   }, [showNaturalModal, showJuridicalModal, showRegisterSuccess]);
+
+  useEffect(() => {
+    if (showNaturalModal || showJuridicalModal) {
+      fetch("/api/departments")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setDepartments(data.departments);
+          }
+        })
+        .catch((err) => console.error("Error loading departments:", err));
+    }
+  }, [showNaturalModal, showJuridicalModal]);
+
+  useEffect(() => {
+    if (naturalForm.departmentId) {
+      fetch(`/api/municipalities/${naturalForm.departmentId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setMunicipalities(data.municipalities);
+          }
+        })
+        .catch((err) => console.error("Error loading municipalities:", err));
+    } else {
+      setMunicipalities([]);
+      setNaturalForm((prev) => ({ ...prev, municipalityId: "" }));
+    }
+  }, [naturalForm.departmentId]);
 
   const onSubmitNatural = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -139,6 +174,8 @@ export default function KycPage() {
     payload.append("documentType", naturalForm.idType);
     payload.append("documentNumber", naturalForm.idNumber);
     payload.append("nationality", naturalForm.nationality);
+    payload.append("departmentId", naturalForm.departmentId);
+    payload.append("municipalityId", naturalForm.municipalityId);
     payload.append("city", naturalForm.city);
     payload.append("address", naturalForm.address);
     payload.append("email", naturalForm.email);
@@ -538,18 +575,37 @@ export default function KycPage() {
                   </label>
 
                   <label className="kyc-natural-field">
-                    <span>Ciudad</span>
+                    <span>Departamento</span>
                     <select
-                      value={naturalForm.city}
-                      onChange={(event) => setNaturalForm((prev) => ({ ...prev, city: event.target.value }))}
+                      value={naturalForm.departmentId}
+                      onChange={(event) => setNaturalForm((prev) => ({ ...prev, departmentId: event.target.value }))}
                       required
                     >
-                      <option value="">Seleccione una ciudad</option>
-                      <option value="Bogotá">Bogotá</option>
-                      <option value="Medellín">Medellín</option>
-                      <option value="Cali">Cali</option>
-                      <option value="Barranquilla">Barranquilla</option>
-                      <option value="Bucaramanga">Bucaramanga</option>
+                      <option value="">Seleccione un departamento</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="kyc-natural-field">
+                    <span>Ciudad/Municipio</span>
+                    <select
+                      value={naturalForm.municipalityId}
+                      onChange={(event) => setNaturalForm((prev) => ({ ...prev, municipalityId: event.target.value }))}
+                      required
+                      disabled={!naturalForm.departmentId}
+                    >
+                      <option value="">
+                        {naturalForm.departmentId ? "Seleccione un municipio" : "Primero seleccione un departamento"}
+                      </option>
+                      {municipalities.map((mun) => (
+                        <option key={mun.id} value={mun.id}>
+                          {mun.name}
+                        </option>
+                      ))}
                     </select>
                   </label>
 
