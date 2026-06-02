@@ -1,18 +1,10 @@
 import { NextResponse } from "next/server";
-import mysql from "mysql2/promise";
-
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "vor_enterprise",
-  waitForConnections: true,
-  connectionLimit: 10,
-});
+import { getMysqlPool } from "@/lib/mysql";
 
 export async function GET() {
   try {
-    const [rows] = await pool.query(
+    const db = getMysqlPool();
+    const [rows] = await db.query(
       "SELECT id, code, name FROM departments ORDER BY name ASC"
     );
     
