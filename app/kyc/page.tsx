@@ -363,7 +363,7 @@ export default function KycPage() {
 
   return (
     <main className="kyc-picker-page">
-      <section className="kyc-picker-card" aria-label="Registro Nacional KYC">
+      <section className="kyc-picker-card" aria-label="Registro KYC">
         <div className="kyc-picker-icon" aria-hidden="true">
           <svg viewBox="0 0 64 64" role="img" focusable="false">
             <circle cx="32" cy="32" r="22" className="kyc-icon-ring" />
@@ -376,7 +376,7 @@ export default function KycPage() {
           </svg>
         </div>
 
-        <p className="kyc-picker-kicker">REGISTRO NACIONAL KYC</p>
+        <p className="kyc-picker-kicker">REGISTRO KYC</p>
         <h1 className="kyc-picker-title">Elige el tipo de KYC que realizarás</h1>
 
         <div className="kyc-picker-actions">
