@@ -51,8 +51,8 @@ export async function PUT(request: Request) {
     const nationality = normalize(formData.get("nationality"));
     const departmentIdStr = normalize(formData.get("departmentId"));
     const municipalityIdStr = normalize(formData.get("municipalityId"));
-    const departmentId = departmentIdStr ? Number(departmentIdStr) : null;
-    const municipalityId = municipalityIdStr ? Number(municipalityIdStr) : null;
+    const departmentId = departmentIdStr && departmentIdStr !== "" && !isNaN(Number(departmentIdStr)) ? Number(departmentIdStr) : null;
+    const municipalityId = municipalityIdStr && municipalityIdStr !== "" && !isNaN(Number(municipalityIdStr)) ? Number(municipalityIdStr) : null;
     const address = normalize(formData.get("address"));
     const email = normalize(formData.get("email")).toLowerCase();
     const phone = normalize(formData.get("phone"));
