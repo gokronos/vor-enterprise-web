@@ -17,7 +17,6 @@ type KycSessionUser = {
   nationality: string;
   departmentId: number | null;
   municipalityId: number | null;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -41,7 +40,6 @@ type EditableProfileForm = {
   nationality: string;
   departmentId: string;
   municipalityId: string;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -63,7 +61,6 @@ type AdminDashboardRecord = {
   documentType: string;
   documentNumber: string;
   nationality: string;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -97,7 +94,6 @@ const initialEditableProfile: EditableProfileForm = {
   nationality: "",
   departmentId: "",
   municipalityId: "",
-  city: "",
   address: "",
   email: "",
   phone: "",
@@ -259,7 +255,6 @@ export default function KycPanelPage() {
         nationality: parsed.nationality || "",
         departmentId: parsed.departmentId || null,
         municipalityId: parsed.municipalityId || null,
-        city: parsed.city || "",
         address: parsed.address || "",
         email: parsed.email || "",
         phone: parsed.phone || "",
@@ -288,7 +283,6 @@ export default function KycPanelPage() {
         nationality: hydratedUser.nationality,
         departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
         municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
-        city: hydratedUser.city,
         address: hydratedUser.address,
         email: hydratedUser.email,
         phone: hydratedUser.phone,
@@ -367,7 +361,6 @@ export default function KycPanelPage() {
           nationality: data.user.nationality || "",
           departmentId: data.user.departmentId || null,
           municipalityId: data.user.municipalityId || null,
-          city: data.user.city || "",
           address: data.user.address || "",
           email: data.user.email || "",
           phone: data.user.phone || "",
@@ -402,7 +395,6 @@ export default function KycPanelPage() {
           nationality: normalizedUser.nationality,
           departmentId: normalizedUser.departmentId ? String(normalizedUser.departmentId) : "",
           municipalityId: normalizedUser.municipalityId ? String(normalizedUser.municipalityId) : "",
-          city: normalizedUser.city,
           address: normalizedUser.address,
           email: normalizedUser.email,
           phone: normalizedUser.phone,
@@ -468,7 +460,6 @@ export default function KycPanelPage() {
     payload.append("nationality", editableProfile.nationality);
     payload.append("departmentId", editableProfile.departmentId);
     payload.append("municipalityId", editableProfile.municipalityId);
-    payload.append("city", editableProfile.city);
     payload.append("address", editableProfile.address);
     payload.append("email", editableProfile.email);
     payload.append("phone", editableProfile.phone);
@@ -535,7 +526,6 @@ export default function KycPanelPage() {
           nationality: editableProfile.nationality,
           departmentId: editableProfile.departmentId ? Number(editableProfile.departmentId) : null,
           municipalityId: editableProfile.municipalityId ? Number(editableProfile.municipalityId) : null,
-          city: editableProfile.city,
           address: editableProfile.address,
           email: editableProfile.email,
           phone: editableProfile.phone,
@@ -1090,16 +1080,6 @@ export default function KycPanelPage() {
               </label>
 
               <label className="kyc-login-field">
-                <span>Ciudad</span>
-                <input
-                  type="text"
-                  value={editableProfile.city}
-                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, city: event.target.value }))}
-                  required
-                />
-              </label>
-
-              <label className="kyc-login-field">
                 <span>Dirección</span>
                 <input
                   type="text"
@@ -1349,7 +1329,6 @@ export default function KycPanelPage() {
                 <p><strong>Tipo KYC:</strong> {selectedAdminRecord.kycType === "PERSONA_JURIDICA" ? "Jurídica" : "Natural"}</p>
                 <p><strong>Documento:</strong> {selectedAdminRecord.documentType} {selectedAdminRecord.documentNumber}</p>
                 <p><strong>Nacionalidad:</strong> {selectedAdminRecord.nationality || "No reporta"}</p>
-                <p><strong>Ciudad:</strong> {selectedAdminRecord.city || "No reporta"}</p>
                 <p><strong>Dirección:</strong> {selectedAdminRecord.address || "No reporta"}</p>
                 <p><strong>Correo:</strong> {selectedAdminRecord.email || "No reporta"}</p>
                 <p><strong>Teléfono:</strong> {selectedAdminRecord.phone || "No reporta"}</p>

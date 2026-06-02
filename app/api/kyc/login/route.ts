@@ -53,7 +53,6 @@ export async function POST(request: Request) {
           documentNumber: admin.username,
           kycType: "PERSONA_NATURAL",
           nationality: "",
-          city: "",
           address: "",
           email: "",
           phone: "",
@@ -84,7 +83,6 @@ export async function POST(request: Request) {
           nationality,
           department_id,
           municipality_id,
-          city,
           address,
           email,
           phone,
@@ -118,7 +116,6 @@ export async function POST(request: Request) {
       nationality: string;
       department_id: number | null;
       municipality_id: number | null;
-      city: string;
       address: string;
       email: string;
       phone: string;
@@ -166,7 +163,6 @@ export async function POST(request: Request) {
         nationality: user.nationality,
         departmentId: user.department_id,
         municipalityId: user.municipality_id,
-        city: user.city,
         address: user.address,
         email: user.email,
         phone: user.phone,

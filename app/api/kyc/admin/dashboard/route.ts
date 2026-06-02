@@ -8,7 +8,6 @@ type KycRow = {
   document_type: string;
   document_number: string;
   nationality: string;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -89,7 +88,6 @@ export async function GET(request: Request) {
           document_type,
           document_number,
           nationality,
-          city,
           address,
           email,
           phone,
@@ -121,7 +119,6 @@ export async function GET(request: Request) {
       documentType: row.document_type,
       documentNumber: row.document_number,
       nationality: row.nationality,
-      city: row.city,
       address: row.address,
       email: row.email,
       phone: row.phone,

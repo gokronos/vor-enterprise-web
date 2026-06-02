@@ -10,7 +10,6 @@ type NaturalKycForm = {
   nationality: string;
   departmentId: string;
   municipalityId: string;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -25,7 +24,6 @@ type JuridicalKycForm = {
   idNumber: string;
   idType: string;
   nationality: string;
-  city: string;
   address: string;
   email: string;
   phone: string;
@@ -45,7 +43,6 @@ const initialNaturalForm: NaturalKycForm = {
   nationality: "",
   departmentId: "",
   municipalityId: "",
-  city: "",
   address: "",
   email: "",
   phone: "",
@@ -60,7 +57,6 @@ const initialJuridicalForm: JuridicalKycForm = {
   idNumber: "",
   idType: "",
   nationality: "",
-  city: "",
   address: "",
   email: "",
   phone: "",
@@ -176,7 +172,6 @@ export default function KycPage() {
     payload.append("nationality", naturalForm.nationality);
     payload.append("departmentId", naturalForm.departmentId);
     payload.append("municipalityId", naturalForm.municipalityId);
-    payload.append("city", naturalForm.city);
     payload.append("address", naturalForm.address);
     payload.append("email", naturalForm.email);
     payload.append("phone", naturalForm.phone);
@@ -307,7 +302,6 @@ export default function KycPage() {
     payload.append("documentType", juridicalForm.idType);
     payload.append("documentNumber", juridicalForm.idNumber);
     payload.append("nationality", juridicalForm.nationality);
-    payload.append("city", juridicalForm.city);
     payload.append("address", juridicalForm.address);
     payload.append("email", juridicalForm.email);
     payload.append("phone", juridicalForm.phone);
@@ -801,22 +795,6 @@ export default function KycPage() {
 
                 <section className="kyc-natural-panel">
                   <h3>Contacto</h3>
-
-                  <label className="kyc-natural-field">
-                    <span>Ciudad</span>
-                    <select
-                      value={juridicalForm.city}
-                      onChange={(event) => setJuridicalForm((prev) => ({ ...prev, city: event.target.value }))}
-                      required
-                    >
-                      <option value="">Seleccione una ciudad</option>
-                      <option value="Bogotá">Bogotá</option>
-                      <option value="Medellín">Medellín</option>
-                      <option value="Cali">Cali</option>
-                      <option value="Barranquilla">Barranquilla</option>
-                      <option value="Bucaramanga">Bucaramanga</option>
-                    </select>
-                  </label>
 
                   <label className="kyc-natural-field">
                     <span>Dirección</span>

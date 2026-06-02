@@ -45,7 +45,6 @@ export async function POST(request: Request) {
     const nationality = normalize(formValue(formData, "nationality"));
     const departmentId = formValue(formData, "departmentId");
     const municipalityId = formValue(formData, "municipalityId");
-    const city = normalize(formValue(formData, "city"));
     const address = normalize(formValue(formData, "address"));
     const email = normalize(formValue(formData, "email")).toLowerCase();
     const phone = normalize(formValue(formData, "phone"));
@@ -158,7 +157,6 @@ export async function POST(request: Request) {
           nationality,
           department_id,
           municipality_id,
-          city,
           address,
           email,
           phone,
@@ -179,7 +177,7 @@ export async function POST(request: Request) {
           shareholder_composition_pdf_path,
           status
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         kycType,
@@ -189,7 +187,6 @@ export async function POST(request: Request) {
         nationality,
         departmentId ? parseInt(departmentId) : null,
         municipalityId ? parseInt(municipalityId) : null,
-        city,
         address,
         email,
         phone,

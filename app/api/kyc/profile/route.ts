@@ -53,7 +53,6 @@ export async function PUT(request: Request) {
     const municipalityIdStr = normalize(formData.get("municipalityId"));
     const departmentId = departmentIdStr ? Number(departmentIdStr) : null;
     const municipalityId = municipalityIdStr ? Number(municipalityIdStr) : null;
-    const city = normalize(formData.get("city"));
     const address = normalize(formData.get("address"));
     const email = normalize(formData.get("email")).toLowerCase();
     const phone = normalize(formData.get("phone"));
@@ -73,7 +72,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Identificador inválido." }, { status: 400 });
     }
 
-    if (!fullName || !nationality || !city || !address || !email || !phone || !sourceOfFunds) {
+    if (!fullName || !nationality || !address || !email || !phone || !sourceOfFunds) {
       return NextResponse.json({ error: "Debe completar todos los campos editables." }, { status: 400 });
     }
 
@@ -171,7 +170,6 @@ export async function PUT(request: Request) {
           nationality = ?,
           department_id = ?,
           municipality_id = ?,
-          city = ?,
           address = ?,
           email = ?,
           phone = ?,
@@ -194,7 +192,6 @@ export async function PUT(request: Request) {
         nationality,
         departmentId,
         municipalityId,
-        city,
         address,
         email,
         phone,
