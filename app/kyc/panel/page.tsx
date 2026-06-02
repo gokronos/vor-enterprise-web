@@ -135,8 +135,8 @@ export default function KycPanelPage() {
   const [selectedAdminRecord, setSelectedAdminRecord] = useState<AdminDashboardRecord | null>(null);
   const [deletingAdminUser, setDeletingAdminUser] = useState(false);
   const [adminDetailError, setAdminDetailError] = useState("");
-  const [departments, setDepartments] = useState<Array<{ id: number; code: string; name: string }>>([]);
-  const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string }>>([]);
+  const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
+  const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string; code: string }>>([]);
 
   const loadAdminDashboard = (adminId: number) => {
     setAdminLoading(true);
@@ -301,6 +301,33 @@ export default function KycPanelPage() {
       window.sessionStorage.removeItem("vorKycSessionUser");
     }
   }, []);
+
+  useEffect(() => {
+    fetch("/api/departments")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.departments) {
+          setDepartments(data.departments);
+        }
+      })
+      .catch((error) => console.error("Error loading departments:", error));
+  }, []);
+
+  useEffect(() => {
+    if (editableProfile.departmentId) {
+      fetch(`/api/municipalities/${editableProfile.departmentId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.municipalities) {
+            setMunicipalities(data.municipalities);
+          }
+        })
+        .catch((error) => console.error("Error loading municipalities:", error));
+    } else {
+      setMunicipalities([]);
+      setEditableProfile((prev) => ({ ...prev, municipalityId: "" }));
+    }
+  }, [editableProfile.departmentId]);
 
   const onSubmitLogin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -760,50 +787,6 @@ export default function KycPanelPage() {
     }
   }, [activeDoc, documents.length]);
 
-  useEffect(() => {
-    fetch("/api/departments")
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Error al cargar departamentos");
-        }
-        const data = (await response.json()) as {
-          success: boolean;
-          departments: Array<{ id: number; code: string; name: string }>;
-        };
-        if (data.success && Array.isArray(data.departments)) {
-          setDepartments(data.departments);
-        }
-      })
-      .catch((error) => {
-        console.error("Error loading departments:", error);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (!editableProfile.departmentId) {
-      setMunicipalities([]);
-      return;
-    }
-
-    fetch(`/api/municipalities/${editableProfile.departmentId}`)
-      .then(async (response) => {
-        if (!response.ok) {
-          throw new Error("Error al cargar municipios");
-        }
-        const data = (await response.json()) as {
-          success: boolean;
-          municipalities: Array<{ id: number; name: string }>;
-        };
-        if (data.success && Array.isArray(data.municipalities)) {
-          setMunicipalities(data.municipalities);
-        }
-      })
-      .catch((error) => {
-        console.error("Error loading municipalities:", error);
-        setMunicipalities([]);
-      });
-  }, [editableProfile.departmentId]);
-
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
 
@@ -1073,15 +1056,7 @@ export default function KycPanelPage() {
                 <span>Departamento</span>
                 <select
                   value={editableProfile.departmentId}
-                  onChange={(event) => {
-                    const newDeptId = event.target.value;
-                    setEditableProfile((prev) => ({
-                      ...prev,
-                      departmentId: newDeptId,
-                      municipalityId: "",
-                    }));
-                  }}
-                  required
+                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value }))}
                 >
                   <option value="">Seleccione un departamento</option>
                   {departments.map((dept) => (
@@ -1096,20 +1071,21 @@ export default function KycPanelPage() {
                 <span>Municipio</span>
                 <select
                   value={editableProfile.municipalityId}
-                  onChange={(event) =>
-                    setEditableProfile((prev) => ({ ...prev, municipalityId: event.target.value }))
-                  }
+                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, municipalityId: event.target.value }))}
                   disabled={!editableProfile.departmentId}
-                  required
                 >
-                  <option value="">
-                    {editableProfile.departmentId ? "Seleccione un municipio" : "Primero seleccione un departamento"}
-                  </option>
-                  {municipalities.map((mun) => (
-                    <option key={mun.id} value={mun.id}>
-                      {mun.name}
-                    </option>
-                  ))}
+                  {!editableProfile.departmentId ? (
+                    <option value="">Primero seleccione un departamento</option>
+                  ) : (
+                    <>
+                      <option value="">Seleccione un municipio</option>
+                      {municipalities.map((mun) => (
+                        <option key={mun.id} value={mun.id}>
+                          {mun.name}
+                        </option>
+                      ))}
+                    </>
+                  )}
                 </select>
               </label>
 
@@ -1244,8 +1220,11 @@ export default function KycPanelPage() {
                 <article className="kyc-doc-item">
                   <p>{activeDocument.title}</p>
                   {activeDocument.url ? (
+                    <>
                     <div className="kyc-doc-viewer-container" style={{ position: "relative", background: "#f5f5f5", borderRadius: "8px", overflow: "hidden", boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
                       <iframe src={activeDocument.url} title={activeDocument.title} className="kyc-doc-frame" />
+                      <button
+                        type="button"
                       <div style={{ position: "absolute", top: "10px", right: "10px", display: "flex", gap: "8px" }}>
                         <button
                           type="button"
@@ -1261,8 +1240,12 @@ export default function KycPanelPage() {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="kyc-doc-link"
+                        onClick={() => openPdfPreview(activeDocument.title, activeDocument.url as string)}
                         style={{ display: "block", padding: "12px", textAlign: "center", background: "#111", borderTop: "1px solid #333", fontSize: "13px" }}
                       >
+                        Ver PDF en ventana flotante
+                      </button>
+                    </>
                         ¿No puedes ver el documento? Toca aquí para abrirlo
                       </a>
                     </div>
