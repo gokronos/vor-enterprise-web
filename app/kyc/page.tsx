@@ -24,6 +24,8 @@ type JuridicalKycForm = {
   idNumber: string;
   idType: string;
   nationality: string;
+  departmentId: string;
+  municipalityId: string;
   address: string;
   email: string;
   phone: string;
@@ -57,6 +59,8 @@ const initialJuridicalForm: JuridicalKycForm = {
   idNumber: "",
   idType: "",
   nationality: "",
+  departmentId: "",
+  municipalityId: "",
   address: "",
   email: "",
   phone: "",
@@ -140,6 +144,22 @@ export default function KycPage() {
       setNaturalForm((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [naturalForm.departmentId]);
+
+  useEffect(() => {
+    if (juridicalForm.departmentId) {
+      fetch(`/api/municipalities/${juridicalForm.departmentId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            setMunicipalities(data.municipalities);
+          }
+        })
+        .catch((err) => console.error("Error loading municipalities:", err));
+    } else {
+      setMunicipalities([]);
+      setJuridicalForm((prev) => ({ ...prev, municipalityId: "" }));
+    }
+  }, [juridicalForm.departmentId]);
 
   const onSubmitNatural = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -302,6 +322,8 @@ export default function KycPage() {
     payload.append("documentType", juridicalForm.idType);
     payload.append("documentNumber", juridicalForm.idNumber);
     payload.append("nationality", juridicalForm.nationality);
+    payload.append("departmentId", juridicalForm.departmentId);
+    payload.append("municipalityId", juridicalForm.municipalityId);
     payload.append("address", juridicalForm.address);
     payload.append("email", juridicalForm.email);
     payload.append("phone", juridicalForm.phone);
@@ -790,6 +812,39 @@ export default function KycPage() {
                       onChange={(event) => setJuridicalForm((prev) => ({ ...prev, nationality: event.target.value }))}
                       required
                     />
+                  </label>
+
+                  <label className="kyc-natural-field">
+                    <span>Departamento (Opcional)</span>
+                    <select
+                      value={juridicalForm.departmentId}
+                      onChange={(event) => setJuridicalForm((prev) => ({ ...prev, departmentId: event.target.value }))}
+                    >
+                      <option value="">Seleccione un departamento</option>
+                      {departments.map((dept) => (
+                        <option key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+
+                  <label className="kyc-natural-field">
+                    <span>Ciudad/Municipio (Opcional)</span>
+                    <select
+                      value={juridicalForm.municipalityId}
+                      onChange={(event) => setJuridicalForm((prev) => ({ ...prev, municipalityId: event.target.value }))}
+                      disabled={!juridicalForm.departmentId}
+                    >
+                      <option value="">
+                        {juridicalForm.departmentId ? "Seleccione un municipio" : "Primero seleccione un departamento"}
+                      </option>
+                      {municipalities.map((mun) => (
+                        <option key={mun.id} value={mun.id}>
+                          {mun.name}
+                        </option>
+                      ))}
+                    </select>
                   </label>
                 </section>
 
