@@ -505,6 +505,8 @@ export default function KycPanelPage() {
         const updatedUser = {
           ...sessionUser,
           ...editableProfile,
+          departmentId: editableProfile.departmentId ? Number(editableProfile.departmentId) : null,
+          municipalityId: editableProfile.municipalityId ? Number(editableProfile.municipalityId) : null,
           ccPdfPath:
             typeof data.ccPdfPath === "string" || data.ccPdfPath === null
               ? data.ccPdfPath
