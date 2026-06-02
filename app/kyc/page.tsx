@@ -575,11 +575,10 @@ export default function KycPage() {
                   </label>
 
                   <label className="kyc-natural-field">
-                    <span>Departamento</span>
+                    <span>Departamento (Opcional)</span>
                     <select
                       value={naturalForm.departmentId}
                       onChange={(event) => setNaturalForm((prev) => ({ ...prev, departmentId: event.target.value }))}
-                      required
                     >
                       <option value="">Seleccione un departamento</option>
                       {departments.map((dept) => (
@@ -591,11 +590,10 @@ export default function KycPage() {
                   </label>
 
                   <label className="kyc-natural-field">
-                    <span>Ciudad/Municipio</span>
+                    <span>Ciudad/Municipio (Opcional)</span>
                     <select
                       value={naturalForm.municipalityId}
                       onChange={(event) => setNaturalForm((prev) => ({ ...prev, municipalityId: event.target.value }))}
-                      required
                       disabled={!naturalForm.departmentId}
                     >
                       <option value="">
