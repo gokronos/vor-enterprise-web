@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import mysql from "mysql2/promise";
 
 const pool = mysql.createPool({
@@ -11,11 +11,12 @@ const pool = mysql.createPool({
 });
 
 export async function GET(
-  request: Request,
-  { params }: { params: { departmentId: string } }
+  request: NextRequest,
+  context: { params: Promise<{ departmentId: string }> }
 ) {
   try {
-    const departmentId = parseInt(params.departmentId);
+    const { departmentId: departmentIdStr } = await context.params;
+    const departmentId = parseInt(departmentIdStr);
     
     if (isNaN(departmentId)) {
       return NextResponse.json(
