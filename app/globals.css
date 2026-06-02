@@ -2550,6 +2550,29 @@ body {
   box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.18);
 }
 
+.kyc-login-field select {
+  min-height: 2.55rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(0, 240, 255, 0.22);
+  background: rgba(246, 250, 255, 0.93);
+  color: #092447;
+  padding: 0.55rem 0.62rem;
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  font-size: 0.93rem;
+  cursor: pointer;
+}
+
+.kyc-login-field select:focus {
+  border-color: #00d8f4;
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.18);
+}
+
+.kyc-login-field select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* Inputs dentro del panel de gestión: estilo oscuro tipo dashboard */
 .kyc-client-card .kyc-login-field input {
   background: rgba(8, 18, 40, 0.85);
@@ -2566,6 +2589,27 @@ body {
 
 .kyc-client-card .kyc-login-field input::placeholder {
   color: #4a6a85;
+}
+
+.kyc-client-card .kyc-login-field select {
+  background: rgba(8, 18, 40, 0.85);
+  color: #deeeff;
+  border: 1px solid rgba(0, 200, 230, 0.28);
+  font-size: 0.93rem;
+  cursor: pointer;
+}
+
+.kyc-client-card .kyc-login-field select:focus {
+  background: rgba(10, 22, 48, 0.95);
+  border-color: #00cfee;
+  box-shadow: 0 0 0 3px rgba(0, 210, 240, 0.14);
+}
+
+.kyc-client-card .kyc-login-field select:disabled {
+  background: rgba(8, 18, 40, 0.5);
+  color: #4a6a85;
+  cursor: not-allowed;
+  border-color: rgba(0, 200, 230, 0.12);
 }
 
 .kyc-client-form .kyc-login-field--full {
