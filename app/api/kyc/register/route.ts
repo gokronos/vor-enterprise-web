@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     const bankCertificatePdf = formData.get("bankCertificatePdf");
     const shareholderCompositionPdf = formData.get("shareholderCompositionPdf");
 
-    if (!fullName || !documentType || !documentNumber || !nationality || !city || !address || !email || !phone || !sourceOfFunds) {
+    if (!fullName || !documentType || !documentNumber || !nationality || !address || !email || !phone || !sourceOfFunds) {
       return NextResponse.json(
         { error: "Todos los campos son obligatorios." },
         { status: 400 },
