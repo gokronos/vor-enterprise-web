@@ -82,6 +82,8 @@ export async function POST(request: Request) {
           full_name,
           document_number,
           nationality,
+          department_id,
+          municipality_id,
           city,
           address,
           email,
@@ -114,6 +116,8 @@ export async function POST(request: Request) {
       full_name: string;
       document_number: string;
       nationality: string;
+      department_id: number | null;
+      municipality_id: number | null;
       city: string;
       address: string;
       email: string;
@@ -160,6 +164,8 @@ export async function POST(request: Request) {
         fullName: user.full_name,
         documentNumber: user.document_number,
         nationality: user.nationality,
+        departmentId: user.department_id,
+        municipalityId: user.municipality_id,
         city: user.city,
         address: user.address,
         email: user.email,

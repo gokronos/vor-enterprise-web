@@ -49,6 +49,10 @@ export async function PUT(request: Request) {
     const fullName = normalize(formData.get("fullName"));
     const kycType = normalize(formData.get("kycType")) === "PERSONA_JURIDICA" ? "PERSONA_JURIDICA" : "PERSONA_NATURAL";
     const nationality = normalize(formData.get("nationality"));
+    const departmentIdStr = normalize(formData.get("departmentId"));
+    const municipalityIdStr = normalize(formData.get("municipalityId"));
+    const departmentId = departmentIdStr ? Number(departmentIdStr) : null;
+    const municipalityId = municipalityIdStr ? Number(municipalityIdStr) : null;
     const city = normalize(formData.get("city"));
     const address = normalize(formData.get("address"));
     const email = normalize(formData.get("email")).toLowerCase();
@@ -165,6 +169,8 @@ export async function PUT(request: Request) {
           kyc_type = ?,
           full_name = ?,
           nationality = ?,
+          department_id = ?,
+          municipality_id = ?,
           city = ?,
           address = ?,
           email = ?,
@@ -186,6 +192,8 @@ export async function PUT(request: Request) {
         kycType,
         fullName,
         nationality,
+        departmentId,
+        municipalityId,
         city,
         address,
         email,

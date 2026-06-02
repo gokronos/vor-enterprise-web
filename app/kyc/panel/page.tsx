@@ -15,6 +15,8 @@ type KycSessionUser = {
   fullName: string;
   documentNumber: string;
   nationality: string;
+  departmentId: number | null;
+  municipalityId: number | null;
   city: string;
   address: string;
   email: string;
@@ -37,6 +39,8 @@ type KycSessionUser = {
 type EditableProfileForm = {
   fullName: string;
   nationality: string;
+  departmentId: string;
+  municipalityId: string;
   city: string;
   address: string;
   email: string;
@@ -91,6 +95,8 @@ const initialLoginForm: LoginFormState = {
 const initialEditableProfile: EditableProfileForm = {
   fullName: "",
   nationality: "",
+  departmentId: "",
+  municipalityId: "",
   city: "",
   address: "",
   email: "",
@@ -129,6 +135,8 @@ export default function KycPanelPage() {
   const [selectedAdminRecord, setSelectedAdminRecord] = useState<AdminDashboardRecord | null>(null);
   const [deletingAdminUser, setDeletingAdminUser] = useState(false);
   const [adminDetailError, setAdminDetailError] = useState("");
+  const [departments, setDepartments] = useState<Array<{ id: number; code: string; name: string }>>([]);
+  const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string }>>([]);
 
   const loadAdminDashboard = (adminId: number) => {
     setAdminLoading(true);
@@ -276,6 +284,8 @@ export default function KycPanelPage() {
       setEditableProfile({
         fullName: hydratedUser.fullName,
         nationality: hydratedUser.nationality,
+        departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
+        municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
         city: hydratedUser.city,
         address: hydratedUser.address,
         email: hydratedUser.email,
@@ -326,6 +336,8 @@ export default function KycPanelPage() {
           role: data.user.role === "ADMIN_PRINCIPAL" ? "ADMIN_PRINCIPAL" : "CLIENT",
           kycType: data.user.kycType === "PERSONA_JURIDICA" ? "PERSONA_JURIDICA" : "PERSONA_NATURAL",
           nationality: data.user.nationality || "",
+          departmentId: data.user.departmentId || null,
+          municipalityId: data.user.municipalityId || null,
           city: data.user.city || "",
           address: data.user.address || "",
           email: data.user.email || "",
@@ -359,6 +371,8 @@ export default function KycPanelPage() {
         setEditableProfile({
           fullName: normalizedUser.fullName,
           nationality: normalizedUser.nationality,
+          departmentId: normalizedUser.departmentId ? String(normalizedUser.departmentId) : "",
+          municipalityId: normalizedUser.municipalityId ? String(normalizedUser.municipalityId) : "",
           city: normalizedUser.city,
           address: normalizedUser.address,
           email: normalizedUser.email,
@@ -423,6 +437,8 @@ export default function KycPanelPage() {
     payload.append("kycType", sessionUser.kycType);
     payload.append("fullName", editableProfile.fullName);
     payload.append("nationality", editableProfile.nationality);
+    payload.append("departmentId", editableProfile.departmentId);
+    payload.append("municipalityId", editableProfile.municipalityId);
     payload.append("city", editableProfile.city);
     payload.append("address", editableProfile.address);
     payload.append("email", editableProfile.email);
@@ -731,6 +747,50 @@ export default function KycPanelPage() {
     }
   }, [activeDoc, documents.length]);
 
+  useEffect(() => {
+    fetch("/api/departments")
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Error al cargar departamentos");
+        }
+        const data = (await response.json()) as {
+          success: boolean;
+          departments: Array<{ id: number; code: string; name: string }>;
+        };
+        if (data.success && Array.isArray(data.departments)) {
+          setDepartments(data.departments);
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading departments:", error);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!editableProfile.departmentId) {
+      setMunicipalities([]);
+      return;
+    }
+
+    fetch(`/api/municipalities/${editableProfile.departmentId}`)
+      .then(async (response) => {
+        if (!response.ok) {
+          throw new Error("Error al cargar municipios");
+        }
+        const data = (await response.json()) as {
+          success: boolean;
+          municipalities: Array<{ id: number; name: string }>;
+        };
+        if (data.success && Array.isArray(data.municipalities)) {
+          setMunicipalities(data.municipalities);
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading municipalities:", error);
+        setMunicipalities([]);
+      });
+  }, [editableProfile.departmentId]);
+
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
 
@@ -994,6 +1054,50 @@ export default function KycPanelPage() {
                   onChange={(event) => setEditableProfile((prev) => ({ ...prev, nationality: event.target.value }))}
                   required
                 />
+              </label>
+
+              <label className="kyc-login-field">
+                <span>Departamento</span>
+                <select
+                  value={editableProfile.departmentId}
+                  onChange={(event) => {
+                    const newDeptId = event.target.value;
+                    setEditableProfile((prev) => ({
+                      ...prev,
+                      departmentId: newDeptId,
+                      municipalityId: "",
+                    }));
+                  }}
+                  required
+                >
+                  <option value="">Seleccione un departamento</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="kyc-login-field">
+                <span>Municipio</span>
+                <select
+                  value={editableProfile.municipalityId}
+                  onChange={(event) =>
+                    setEditableProfile((prev) => ({ ...prev, municipalityId: event.target.value }))
+                  }
+                  disabled={!editableProfile.departmentId}
+                  required
+                >
+                  <option value="">
+                    {editableProfile.departmentId ? "Seleccione un municipio" : "Primero seleccione un departamento"}
+                  </option>
+                  {municipalities.map((mun) => (
+                    <option key={mun.id} value={mun.id}>
+                      {mun.name}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               <label className="kyc-login-field">
