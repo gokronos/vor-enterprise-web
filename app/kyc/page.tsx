@@ -797,10 +797,10 @@ export default function KycPage() {
                   <h3>Contacto</h3>
 
                   <label className="kyc-natural-field">
-                    <span>Dirección</span>
+                    <span>Dirección de la empresa</span>
                     <input
                       type="text"
-                      placeholder="Dirección"
+                      placeholder="Dirección de la empresa"
                       value={juridicalForm.address}
                       onChange={(event) => setJuridicalForm((prev) => ({ ...prev, address: event.target.value }))}
                       required
@@ -808,10 +808,10 @@ export default function KycPage() {
                   </label>
 
                   <label className="kyc-natural-field">
-                    <span>Correo electrónico</span>
+                    <span>Correo electrónico corporativo</span>
                     <input
                       type="email"
-                      placeholder="Correo Electrónico"
+                      placeholder="Correo electrónico corporativo"
                       value={juridicalForm.email}
                       onChange={(event) => setJuridicalForm((prev) => ({ ...prev, email: event.target.value }))}
                       required

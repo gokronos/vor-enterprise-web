@@ -1080,7 +1080,7 @@ export default function KycPanelPage() {
               </label>
 
               <label className="kyc-login-field">
-                <span>Dirección</span>
+                <span>{sessionUser.kycType === "PERSONA_JURIDICA" ? "Dirección de la empresa" : "Dirección"}</span>
                 <input
                   type="text"
                   value={editableProfile.address}
@@ -1090,7 +1090,7 @@ export default function KycPanelPage() {
               </label>
 
               <label className="kyc-login-field">
-                <span>Correo electrónico</span>
+                <span>{sessionUser.kycType === "PERSONA_JURIDICA" ? "Correo electrónico corporativo" : "Correo electrónico"}</span>
                 <input
                   type="email"
                   value={editableProfile.email}
