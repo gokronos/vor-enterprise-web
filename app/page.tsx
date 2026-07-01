@@ -387,9 +387,10 @@ export default function Home() {
             activos virtuales. Protege tu inversión con los más altos estándares de seguridad y legalidad.
           </p>
 
-          //* <button
+           <button
             type="button"
             className="legal-hero__cta"
+            disabled
             onClick={() => setIsSagrilaftModalOpen(true)}
           >
             Leer normatividad legal
