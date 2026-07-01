@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const DOCUMENT_URL = "/documentos/CÓDIGO DE CONDUCTA PARA LA PREVENCIÓN DEL LAFT -VOR ENTERPRISE S.A.S (1) 2.pdf";
+const DOCUMENT_URL = "/documentos/POLITICA TRATAMIENTO DATOS -V.O.R. ENTERPRISE V1 (1) 2.pdf";
 const EMBEDDED_URL = `${DOCUMENT_URL}#view=FitH&toolbar=0&navpanes=0`;
 
 export default function PoliticaDeDatosPage() {
