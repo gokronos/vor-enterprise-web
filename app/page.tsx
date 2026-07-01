@@ -526,7 +526,7 @@ export default function Home() {
             <div className="sagrilaft-modal__body">
               <figure className="sagrilaft-modal__hero-image-wrap">
                 <Image
-                  src="/imagenes/sagrilaft.698ee715.png"
+                  src="/imagenes/Logo VOR.svg"
                   alt="SAGRILAFT seguridad y cumplimiento"
                   width={960}
                   height={540}
