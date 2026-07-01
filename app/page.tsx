@@ -535,11 +535,11 @@ export default function Home() {
               </figure>
 
               <p>
-                En la <strong>Organización V.O.R ENTERPRISE S.A.S, estamos comprometidos con la puesta en marcha 
-                de acciones que permitan tener operaciones comerciales de venta, compra, intermediación y/o 
-                custodía de Activos Virtuales, disminuyendo los riesgos frente al Lavado de Activos 
-                y/o Financiación del Terrorismo LA/FT
-              </p>
+  En la <strong>Organización V.O.R ENTERPRISE S.A.S.</strong>, estamos comprometidos con la puesta en marcha
+  de acciones que permitan tener operaciones comerciales de venta, compra, intermediación y/o
+  custodia de Activos Virtuales, disminuyendo los riesgos frente al Lavado de Activos
+  y/o Financiación del Terrorismo (LA/FT).
+</p>
 
               <p>
                 Esta necesidad responde a que, en la actualidad, en nuestro país es necesarío establecer 
