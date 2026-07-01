@@ -398,7 +398,7 @@ export default function Home() {
 
         <div className="legal-hero__visual" aria-hidden="true">
           <Image
-            src="/imagenes/sagrilaft.698ee715.png"
+            src="/imagenes/Logo VOR.svg"
             alt="Ilustración de seguridad SAGRILAFT"
             width={260}
             height={260}
