@@ -437,7 +437,7 @@ export default function KycPage() {
             Personas
           </button>
           <button type="button" className="kyc-picker-btn" onClick={() => setShowJuridicalModal(true)}>
-            Jurídicos
+            Empresa
           </button>
         </div>
       </section>
