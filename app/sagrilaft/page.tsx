@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const DOCUMENT_URL = "/documentos/sagrilaft-legal-1779506207378.pdf";
+const DOCUMENT_URL = "/documentos/CÓDIGO DE CONDUCTA PARA LA PREVENCIÓN DEL LAFT -VOR ENTERPRISE S.A.S (1) 2.pdf";
 const EMBEDDED_URL = `${DOCUMENT_URL}#view=FitH&toolbar=0&navpanes=0`;
 
 export default function SagrilaftPage() {
@@ -28,9 +28,11 @@ export default function SagrilaftPage() {
           <p className="sagrilaft-kicker">CUMPLIMIENTO NORMATIVO</p>
           <h1>DOCUMENTO SAGRILAFT</h1>
           <p>
-            Visualice la versión vigente del documento institucional SAGRILAFT,
-            con lineamientos de debida diligencia, gestión de riesgos y
-            cumplimiento legal aplicable.
+            Visualice la versión vigente de nuestro Código de Conducta 
+            y Compromiso Institucional SAGRILAFT, con los lineamientos 
+            de debida diligencia, principios éticos y cumplimiento 
+            legal aplicable.
+            
           </p>
 
           <div className="sagrilaft-actions">
