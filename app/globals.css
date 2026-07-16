@@ -2231,6 +2231,30 @@ body {
   color: #f3fbff;
 }
 
+.kyc-admin-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.kyc-admin-edit-form .kyc-submit-btn,
+.kyc-admin-edit-form .kyc-submit-feedback,
+.kyc-admin-edit-wide,
+.kyc-admin-edit-date {
+  grid-column: 1 / -1;
+}
+
+.kyc-admin-edit-form textarea {
+  min-height: 5.5rem;
+  resize: vertical;
+}
+
+.kyc-admin-edit-date {
+  margin: 0;
+  color: #a9cde0;
+  font-size: 0.78rem;
+}
+
 .kyc-admin-danger-zone {
   margin-top: 0.35rem;
   padding-top: 0.62rem;
@@ -2364,6 +2388,10 @@ body {
   }
 
   .kyc-admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kyc-admin-edit-form {
     grid-template-columns: 1fr;
   }
 }

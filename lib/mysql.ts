@@ -87,6 +87,8 @@ export async function ensureKycSchema(): Promise<void> {
 
   await addColumnIfMissing("kyc_requests", "kyc_type", "VARCHAR(30) NOT NULL DEFAULT 'PERSONA_NATURAL' AFTER id");
   await addColumnIfMissing("kyc_requests", "nationality", "VARCHAR(80) NOT NULL DEFAULT '' AFTER document_number");
+  await addColumnIfMissing("kyc_requests", "department_id", "INT UNSIGNED NULL AFTER nationality");
+  await addColumnIfMissing("kyc_requests", "municipality_id", "INT UNSIGNED NULL AFTER department_id");
   await addColumnIfMissing("kyc_requests", "city", "VARCHAR(120) NOT NULL DEFAULT '' AFTER nationality");
   await addColumnIfMissing("kyc_requests", "address", "VARCHAR(220) NOT NULL DEFAULT '' AFTER city");
   await addColumnIfMissing("kyc_requests", "source_of_funds", "TEXT NULL AFTER phone");
