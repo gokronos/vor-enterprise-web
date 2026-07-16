@@ -28,8 +28,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Debe completar la información requerida." }, { status: 400 });
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "La nueva contraseña debe tener al menos 6 caracteres." }, { status: 400 });
+    if (newPassword.length < 8) {
+      return NextResponse.json({ error: "La nueva contraseña debe tener al menos 8 caracteres." }, { status: 400 });
     }
 
     await ensureKycSchema();

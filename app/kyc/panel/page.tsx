@@ -84,6 +84,24 @@ type AdminDashboardState = {
   records: AdminDashboardRecord[];
 };
 
+type AdminEditForm = {
+  kycType: "PERSONA_NATURAL" | "PERSONA_JURIDICA";
+  fullName: string;
+  documentType: string;
+  documentNumber: string;
+  nationality: string;
+  address: string;
+  email: string;
+  phone: string;
+  sourceOfFunds: string;
+  companyName: string;
+  legalRepresentative: string;
+  taxId: string;
+  beneficialOwners: string;
+  notes: string;
+  status: "REGISTRADO" | "ELIMINADO";
+};
+
 const initialLoginForm: LoginFormState = {
   documentNumber: "",
   password: "",
@@ -101,6 +119,24 @@ const initialEditableProfile: EditableProfileForm = {
   companyName: "",
   legalRepresentative: "",
   taxId: "",
+};
+
+const initialAdminEditForm: AdminEditForm = {
+  kycType: "PERSONA_NATURAL",
+  fullName: "",
+  documentType: "",
+  documentNumber: "",
+  nationality: "",
+  address: "",
+  email: "",
+  phone: "",
+  sourceOfFunds: "",
+  companyName: "",
+  legalRepresentative: "",
+  taxId: "",
+  beneficialOwners: "",
+  notes: "",
+  status: "REGISTRADO",
 };
 
 export default function KycPanelPage() {
@@ -131,14 +167,20 @@ export default function KycPanelPage() {
   const [selectedAdminRecord, setSelectedAdminRecord] = useState<AdminDashboardRecord | null>(null);
   const [deletingAdminUser, setDeletingAdminUser] = useState(false);
   const [adminDetailError, setAdminDetailError] = useState("");
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminTypeFilter, setAdminTypeFilter] = useState<"TODOS" | "PERSONA_NATURAL" | "PERSONA_JURIDICA">("TODOS");
+  const [adminStatusFilter, setAdminStatusFilter] = useState<"TODOS" | "REGISTRADO" | "USUARIO ELIMINADO">("TODOS");
+  const [adminEditForm, setAdminEditForm] = useState<AdminEditForm>(initialAdminEditForm);
+  const [savingAdminUser, setSavingAdminUser] = useState(false);
+  const [adminDetailMessage, setAdminDetailMessage] = useState("");
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string; code: string }>>([]);
 
-  const loadAdminDashboard = (adminId: number) => {
+  const loadAdminDashboard = () => {
     setAdminLoading(true);
     setAdminError("");
 
-    fetch(`/api/kyc/admin/dashboard?adminId=${adminId}`)
+    fetch("/api/kyc/admin/dashboard")
       .then(async (response) => {
         const data = (await response.json()) as {
           error?: string;
@@ -193,6 +235,77 @@ export default function KycPanelPage() {
   const onOpenAdminRecord = (record: AdminDashboardRecord) => {
     setSelectedAdminRecord(record);
     setAdminDetailError("");
+    setAdminDetailMessage("");
+    setAdminEditForm({
+      kycType: record.kycType,
+      fullName: record.fullName,
+      documentType: record.documentType,
+      documentNumber: record.documentNumber,
+      nationality: record.nationality || "",
+      address: record.address || "",
+      email: record.email || "",
+      phone: record.phone || "",
+      sourceOfFunds: record.sourceOfFunds || "",
+      companyName: record.companyName || "",
+      legalRepresentative: record.legalRepresentative || "",
+      taxId: record.taxId || "",
+      beneficialOwners: record.beneficialOwners || "",
+      notes: record.notes || "",
+      status: record.status === "USUARIO ELIMINADO" ? "ELIMINADO" : "REGISTRADO",
+    });
+  };
+
+  const onSaveAdminUser = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!selectedAdminRecord) {
+      return;
+    }
+
+    setSavingAdminUser(true);
+    setAdminDetailError("");
+    setAdminDetailMessage("");
+
+    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(adminEditForm),
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as { message?: string; error?: string };
+
+        if (!response.ok) {
+          throw new Error(data.error || "No fue posible actualizar el usuario.");
+        }
+
+        const updatedRecord: AdminDashboardRecord = {
+          ...selectedAdminRecord,
+          ...adminEditForm,
+          companyName: adminEditForm.companyName || null,
+          legalRepresentative: adminEditForm.legalRepresentative || null,
+          taxId: adminEditForm.taxId || null,
+          beneficialOwners: adminEditForm.beneficialOwners || null,
+          notes: adminEditForm.notes || null,
+          status: adminEditForm.status === "ELIMINADO" ? "USUARIO ELIMINADO" : "REGISTRADO",
+        };
+
+        setSelectedAdminRecord(updatedRecord);
+        setAdminDashboard((prev) =>
+          prev
+            ? {
+                ...prev,
+                records: prev.records.map((record) => (record.id === updatedRecord.id ? updatedRecord : record)),
+              }
+            : prev,
+        );
+        setAdminDetailMessage(data.message || "Usuario actualizado correctamente.");
+      })
+      .catch((error: unknown) => {
+        setAdminDetailError(error instanceof Error ? error.message : "No fue posible actualizar el usuario.");
+      })
+      .finally(() => {
+        setSavingAdminUser(false);
+      });
   };
 
   const onDeleteAdminUserPermanent = () => {
@@ -211,7 +324,7 @@ export default function KycPanelPage() {
     setDeletingAdminUser(true);
     setAdminDetailError("");
 
-    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}?adminId=${sessionUser.id}`, {
+    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}`, {
       method: "DELETE",
     })
       .then(async (response) => {
@@ -222,7 +335,7 @@ export default function KycPanelPage() {
         }
 
         setSelectedAdminRecord(null);
-        loadAdminDashboard(sessionUser.id);
+        loadAdminDashboard();
       })
       .catch((error: unknown) => {
         setAdminDetailError(
@@ -272,24 +385,26 @@ export default function KycPanelPage() {
         bankCertificatePdfPath: parsed.bankCertificatePdfPath || null,
         shareholderCompositionPdfPath: parsed.shareholderCompositionPdfPath || null,
       };
-      setSessionUser(hydratedUser);
+      queueMicrotask(() => {
+        setSessionUser(hydratedUser);
 
-      if (hydratedUser.role === "ADMIN_PRINCIPAL") {
-        loadAdminDashboard(hydratedUser.id);
-      }
+        if (hydratedUser.role === "ADMIN_PRINCIPAL") {
+          loadAdminDashboard();
+        }
 
-      setEditableProfile({
-        fullName: hydratedUser.fullName,
-        nationality: hydratedUser.nationality,
-        departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
-        municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
-        address: hydratedUser.address,
-        email: hydratedUser.email,
-        phone: hydratedUser.phone,
-        sourceOfFunds: hydratedUser.sourceOfFunds,
-        companyName: hydratedUser.companyName || "",
-        legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
-        taxId: hydratedUser.taxId || "",
+        setEditableProfile({
+          fullName: hydratedUser.fullName,
+          nationality: hydratedUser.nationality,
+          departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
+          municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
+          address: hydratedUser.address,
+          email: hydratedUser.email,
+          phone: hydratedUser.phone,
+          sourceOfFunds: hydratedUser.sourceOfFunds,
+          companyName: hydratedUser.companyName || "",
+          legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
+          taxId: hydratedUser.taxId || "",
+        });
       });
     } catch {
       window.sessionStorage.removeItem("vorKycSessionUser");
@@ -317,9 +432,6 @@ export default function KycPanelPage() {
           }
         })
         .catch((error) => console.error("Error loading municipalities:", error));
-    } else {
-      setMunicipalities([]);
-      setEditableProfile((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [editableProfile.departmentId]);
 
@@ -384,7 +496,7 @@ export default function KycPanelPage() {
         setSessionUser(normalizedUser);
 
         if (normalizedUser.role === "ADMIN_PRINCIPAL") {
-          loadAdminDashboard(normalizedUser.id);
+          loadAdminDashboard();
           setEditableProfile(initialEditableProfile);
         } else {
           setAdminDashboard(null);
@@ -454,7 +566,6 @@ export default function KycPanelPage() {
     }
 
     const payload = new FormData();
-    payload.append("id", String(sessionUser.id));
     payload.append("kycType", sessionUser.kycType);
     payload.append("fullName", editableProfile.fullName);
     payload.append("nationality", editableProfile.nationality);
@@ -627,7 +738,6 @@ export default function KycPanelPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: sessionUser.id }),
     })
       .then(async (response) => {
         const data = (await response.json()) as { message?: string; error?: string };
@@ -655,11 +765,14 @@ export default function KycPanelPage() {
   };
 
   const onLogout = () => {
+    void fetch("/api/kyc/logout", { method: "POST" });
     setSessionUser(null);
     setAdminDashboard(null);
     setAdminError("");
     setSelectedAdminRecord(null);
     setAdminDetailError("");
+    setAdminDetailMessage("");
+    setAdminEditForm(initialAdminEditForm);
     setEditableProfile(initialEditableProfile);
     setLoginForm(initialLoginForm);
     setLoginMessage("");
@@ -692,7 +805,6 @@ export default function KycPanelPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: sessionUser.id,
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       }),
@@ -769,16 +881,33 @@ export default function KycPanelPage() {
     ];
   }, [sessionUser]);
 
-  const activeDocument = documents[activeDoc] || null;
-
-  useEffect(() => {
-    if (activeDoc >= documents.length) {
-      setActiveDoc(0);
-    }
-  }, [activeDoc, documents.length]);
+  const activeDocument = documents[activeDoc < documents.length ? activeDoc : 0] || null;
 
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
+  const adminRecords = useMemo(() => adminDashboard?.records || [], [adminDashboard]);
+  const filteredAdminRecords = useMemo(() => {
+    const search = adminSearch.trim().toLowerCase();
+
+    return adminRecords.filter((record) => {
+      const matchesType = adminTypeFilter === "TODOS" || record.kycType === adminTypeFilter;
+      const matchesStatus = adminStatusFilter === "TODOS" || record.status === adminStatusFilter;
+      const haystack = [
+        record.fullName,
+        record.companyName,
+        record.documentType,
+        record.documentNumber,
+        record.email,
+        record.phone,
+        record.taxId,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return matchesType && matchesStatus && (!search || haystack.includes(search));
+    });
+  }, [adminRecords, adminSearch, adminStatusFilter, adminTypeFilter]);
 
   return (
     <main className="kyc-panel-page">
@@ -891,7 +1020,7 @@ export default function KycPanelPage() {
             <button
               type="button"
               className="kyc-doc-nav-btn kyc-admin-refresh"
-              onClick={() => loadAdminDashboard(sessionUser.id)}
+              onClick={() => loadAdminDashboard()}
               disabled={adminLoading}
             >
               {adminLoading ? "Actualizando..." : "Actualizar"}
@@ -899,6 +1028,47 @@ export default function KycPanelPage() {
           </div>
 
           {adminError ? <p className="kyc-submit-feedback kyc-submit-feedback--error">{adminError}</p> : null}
+
+          <div className="kyc-admin-filters" aria-label="Filtros de registros KYC">
+            <label className="kyc-login-field">
+              <span>Buscar</span>
+              <input
+                type="search"
+                placeholder="Nombre, documento, correo o telefono"
+                value={adminSearch}
+                onChange={(event) => setAdminSearch(event.target.value)}
+              />
+            </label>
+            <label className="kyc-login-field">
+              <span>Tipo</span>
+              <select
+                value={adminTypeFilter}
+                onChange={(event) =>
+                  setAdminTypeFilter(event.target.value as "TODOS" | "PERSONA_NATURAL" | "PERSONA_JURIDICA")
+                }
+              >
+                <option value="TODOS">Todos</option>
+                <option value="PERSONA_NATURAL">Personas naturales</option>
+                <option value="PERSONA_JURIDICA">Personas juridicas</option>
+              </select>
+            </label>
+            <label className="kyc-login-field">
+              <span>Estado</span>
+              <select
+                value={adminStatusFilter}
+                onChange={(event) =>
+                  setAdminStatusFilter(event.target.value as "TODOS" | "REGISTRADO" | "USUARIO ELIMINADO")
+                }
+              >
+                <option value="TODOS">Todos</option>
+                <option value="REGISTRADO">Registrados</option>
+                <option value="USUARIO ELIMINADO">Usuarios eliminados</option>
+              </select>
+            </label>
+            <p>
+              Mostrando <strong>{filteredAdminRecords.length}</strong> de <strong>{adminRecords.length}</strong>
+            </p>
+          </div>
 
           <div className="kyc-admin-table-wrap">
             <table className="kyc-admin-table">
@@ -914,7 +1084,7 @@ export default function KycPanelPage() {
                 </tr>
               </thead>
               <tbody>
-                {(adminDashboard?.records || []).map((record) => (
+                {filteredAdminRecords.map((record) => (
                   <tr key={record.id}>
                     <td>{record.kycType === "PERSONA_JURIDICA" ? "Jurídica" : "Natural"}</td>
                     <td>
@@ -957,6 +1127,11 @@ export default function KycPanelPage() {
                     </td>
                   </tr>
                 ))}
+                {!filteredAdminRecords.length ? (
+                  <tr>
+                    <td colSpan={7}>No hay registros que coincidan con los filtros.</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>
@@ -1046,7 +1221,10 @@ export default function KycPanelPage() {
                 <span>Departamento</span>
                 <select
                   value={editableProfile.departmentId}
-                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value }))}
+                  onChange={(event) => {
+                    setMunicipalities([]);
+                    setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value, municipalityId: "" }));
+                  }}
                 >
                   <option value="">Seleccione un departamento</option>
                   {departments.map((dept) => (
@@ -1326,26 +1504,157 @@ export default function KycPanelPage() {
 
             <div className="kyc-admin-detail-grid">
               <article className="kyc-admin-detail-panel">
-                <p><strong>Tipo KYC:</strong> {selectedAdminRecord.kycType === "PERSONA_JURIDICA" ? "Jurídica" : "Natural"}</p>
-                <p><strong>Documento:</strong> {selectedAdminRecord.documentType} {selectedAdminRecord.documentNumber}</p>
-                <p><strong>Nacionalidad:</strong> {selectedAdminRecord.nationality || "No reporta"}</p>
-                <p><strong>Dirección:</strong> {selectedAdminRecord.address || "No reporta"}</p>
-                <p><strong>Correo:</strong> {selectedAdminRecord.email || "No reporta"}</p>
-                <p><strong>Teléfono:</strong> {selectedAdminRecord.phone || "No reporta"}</p>
-                <p><strong>Origen de fondos:</strong> {selectedAdminRecord.sourceOfFunds || "No reporta"}</p>
-                <p><strong>Estado:</strong> {selectedAdminRecord.status}</p>
-                <p><strong>Fecha de registro:</strong> {new Date(selectedAdminRecord.createdAt).toLocaleString("es-CO")}</p>
-
-                {selectedAdminRecord.kycType === "PERSONA_JURIDICA" ? (
-                  <>
-                    <p><strong>Empresa:</strong> {selectedAdminRecord.companyName || "No reporta"}</p>
-                    <p><strong>NIT:</strong> {selectedAdminRecord.taxId || "No reporta"}</p>
-                    <p><strong>Representante legal:</strong> {selectedAdminRecord.legalRepresentative || "No reporta"}</p>
-                    <p><strong>Beneficiarios:</strong> {selectedAdminRecord.beneficialOwners || "No reporta"}</p>
-                  </>
-                ) : null}
-
-                {selectedAdminRecord.notes ? <p><strong>Notas:</strong> {selectedAdminRecord.notes}</p> : null}
+                <form className="kyc-admin-edit-form" onSubmit={onSaveAdminUser}>
+                  <label className="kyc-login-field">
+                    <span>Tipo KYC</span>
+                    <select
+                      value={adminEditForm.kycType}
+                      onChange={(event) =>
+                        setAdminEditForm((prev) => ({
+                          ...prev,
+                          kycType: event.target.value as "PERSONA_NATURAL" | "PERSONA_JURIDICA",
+                        }))
+                      }
+                    >
+                      <option value="PERSONA_NATURAL">Persona natural</option>
+                      <option value="PERSONA_JURIDICA">Persona juridica</option>
+                    </select>
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Nombre / Empresa</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.fullName}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, fullName: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Tipo documento</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.documentType}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, documentType: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Numero documento</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.documentNumber}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, documentNumber: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Nacionalidad</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.nationality}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, nationality: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Direccion</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.address}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, address: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Correo</span>
+                    <input
+                      type="email"
+                      value={adminEditForm.email}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, email: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Telefono</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.phone}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, phone: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field kyc-admin-edit-wide">
+                    <span>Origen de fondos</span>
+                    <textarea
+                      value={adminEditForm.sourceOfFunds}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, sourceOfFunds: event.target.value }))}
+                      required
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Razon social</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.companyName}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, companyName: event.target.value }))}
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>NIT</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.taxId}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, taxId: event.target.value }))}
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Representante legal</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.legalRepresentative}
+                      onChange={(event) =>
+                        setAdminEditForm((prev) => ({ ...prev, legalRepresentative: event.target.value }))
+                      }
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Beneficiarios</span>
+                    <input
+                      type="text"
+                      value={adminEditForm.beneficialOwners}
+                      onChange={(event) =>
+                        setAdminEditForm((prev) => ({ ...prev, beneficialOwners: event.target.value }))
+                      }
+                    />
+                  </label>
+                  <label className="kyc-login-field">
+                    <span>Estado</span>
+                    <select
+                      value={adminEditForm.status}
+                      onChange={(event) =>
+                        setAdminEditForm((prev) => ({ ...prev, status: event.target.value as "REGISTRADO" | "ELIMINADO" }))
+                      }
+                    >
+                      <option value="REGISTRADO">Registrado</option>
+                      <option value="ELIMINADO">Usuario eliminado</option>
+                    </select>
+                  </label>
+                  <label className="kyc-login-field kyc-admin-edit-wide">
+                    <span>Notas</span>
+                    <textarea
+                      value={adminEditForm.notes}
+                      onChange={(event) => setAdminEditForm((prev) => ({ ...prev, notes: event.target.value }))}
+                    />
+                  </label>
+                  <p className="kyc-admin-edit-date">
+                    Fecha de registro: {new Date(selectedAdminRecord.createdAt).toLocaleString("es-CO")}
+                  </p>
+                  <button type="submit" className="kyc-submit-btn" disabled={savingAdminUser}>
+                    {savingAdminUser ? "Guardando..." : "Guardar cambios"}
+                  </button>
+                  {adminDetailMessage ? <p className="kyc-submit-feedback">{adminDetailMessage}</p> : null}
+                  {adminDetailError ? <p className="kyc-submit-feedback kyc-submit-feedback--error">{adminDetailError}</p> : null}
+                </form>
               </article>
 
               <article className="kyc-admin-detail-panel">
@@ -1376,7 +1685,6 @@ export default function KycPanelPage() {
                   >
                     {deletingAdminUser ? "Eliminando definitivamente..." : "Eliminar definitivo"}
                   </button>
-                  {adminDetailError ? <p className="kyc-submit-feedback kyc-submit-feedback--error">{adminDetailError}</p> : null}
                 </div>
               </article>
             </div>
