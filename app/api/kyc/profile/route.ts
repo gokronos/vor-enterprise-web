@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { clearKycSessionCookie, readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
 
 function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -43,9 +44,13 @@ async function safeDeletePublicFile(fileUrl: string | null | undefined): Promise
 
 export async function PUT(request: Request) {
   try {
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "CLIENT") return forbidden();
+
     const formData = await request.formData();
 
-    const id = Number(normalize(formData.get("id")));
+    const id = session.userId;
     const fullName = normalize(formData.get("fullName"));
     const kycType = normalize(formData.get("kycType")) === "PERSONA_JURIDICA" ? "PERSONA_JURIDICA" : "PERSONA_NATURAL";
     const nationality = normalize(formData.get("nationality"));
@@ -234,12 +239,10 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const body = (await request.json()) as { id?: number };
-    const id = Number(body.id);
-
-    if (!id || Number.isNaN(id)) {
-      return NextResponse.json({ error: "Identificador inválido." }, { status: 400 });
-    }
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "CLIENT") return forbidden();
+    const id = session.userId;
 
     await ensureKycSchema();
     const db = getMysqlPool();
@@ -256,7 +259,9 @@ export async function DELETE(request: Request) {
       [id],
     );
 
-    return NextResponse.json({ message: "Usuario eliminado. El registro seguirá visible para auditoría." });
+    const response = NextResponse.json({ message: "Usuario eliminado. El registro seguirá visible para auditoría." });
+    clearKycSessionCookie(response);
+    return response;
   } catch {
     return NextResponse.json({ error: "No fue posible eliminar el registro." }, { status: 500 });
   }
@@ -264,26 +269,25 @@ export async function DELETE(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "CLIENT") return forbidden();
+
     const body = (await request.json()) as {
-      id?: number;
       oldPassword?: string;
       newPassword?: string;
     };
 
-    const id = Number(body.id);
+    const id = session.userId;
     const oldPassword = typeof body.oldPassword === "string" ? body.oldPassword.trim() : "";
     const newPassword = typeof body.newPassword === "string" ? body.newPassword.trim() : "";
-
-    if (!id || Number.isNaN(id)) {
-      return NextResponse.json({ error: "Identificador inválido." }, { status: 400 });
-    }
 
     if (!oldPassword || !newPassword) {
       return NextResponse.json({ error: "Debe ingresar la contraseña actual y la nueva contraseña." }, { status: 400 });
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "La nueva contraseña debe tener al menos 6 caracteres." }, { status: 400 });
+    if (newPassword.length < 8) {
+      return NextResponse.json({ error: "La nueva contraseña debe tener al menos 8 caracteres." }, { status: 400 });
     }
 
     await ensureKycSchema();

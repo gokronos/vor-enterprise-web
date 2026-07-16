@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
+import { readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
 
 type KycRow = {
   id: number;
@@ -32,19 +33,11 @@ function normalizeStatus(status: string | null | undefined): "REGISTRADO" | "USU
   return status === "ELIMINADO" ? "USUARIO ELIMINADO" : "REGISTRADO";
 }
 
-function toAdminId(value: string | null): number {
-  const parsed = Number((value || "").trim());
-  return Number.isFinite(parsed) ? parsed : NaN;
-}
-
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const adminId = toAdminId(searchParams.get("adminId"));
-
-    if (!adminId || Number.isNaN(adminId)) {
-      return NextResponse.json({ error: "Identificador de administrador inválido." }, { status: 400 });
-    }
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "ADMIN_PRINCIPAL") return forbidden();
 
     await ensureKycSchema();
     const db = getMysqlPool();
@@ -56,7 +49,7 @@ export async function GET(request: Request) {
         WHERE id = ?
         LIMIT 1
       `,
-      [adminId],
+      [session.userId],
     );
 
     if (!Array.isArray(adminRows) || adminRows.length === 0) {

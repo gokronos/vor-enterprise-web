@@ -134,11 +134,11 @@ export default function KycPanelPage() {
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string; code: string }>>([]);
 
-  const loadAdminDashboard = (adminId: number) => {
+  const loadAdminDashboard = () => {
     setAdminLoading(true);
     setAdminError("");
 
-    fetch(`/api/kyc/admin/dashboard?adminId=${adminId}`)
+    fetch("/api/kyc/admin/dashboard")
       .then(async (response) => {
         const data = (await response.json()) as {
           error?: string;
@@ -211,7 +211,7 @@ export default function KycPanelPage() {
     setDeletingAdminUser(true);
     setAdminDetailError("");
 
-    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}?adminId=${sessionUser.id}`, {
+    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}`, {
       method: "DELETE",
     })
       .then(async (response) => {
@@ -222,7 +222,7 @@ export default function KycPanelPage() {
         }
 
         setSelectedAdminRecord(null);
-        loadAdminDashboard(sessionUser.id);
+        loadAdminDashboard();
       })
       .catch((error: unknown) => {
         setAdminDetailError(
@@ -275,7 +275,7 @@ export default function KycPanelPage() {
       setSessionUser(hydratedUser);
 
       if (hydratedUser.role === "ADMIN_PRINCIPAL") {
-        loadAdminDashboard(hydratedUser.id);
+        loadAdminDashboard();
       }
 
       setEditableProfile({
@@ -384,7 +384,7 @@ export default function KycPanelPage() {
         setSessionUser(normalizedUser);
 
         if (normalizedUser.role === "ADMIN_PRINCIPAL") {
-          loadAdminDashboard(normalizedUser.id);
+          loadAdminDashboard();
           setEditableProfile(initialEditableProfile);
         } else {
           setAdminDashboard(null);
@@ -454,7 +454,6 @@ export default function KycPanelPage() {
     }
 
     const payload = new FormData();
-    payload.append("id", String(sessionUser.id));
     payload.append("kycType", sessionUser.kycType);
     payload.append("fullName", editableProfile.fullName);
     payload.append("nationality", editableProfile.nationality);
@@ -627,7 +626,6 @@ export default function KycPanelPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: sessionUser.id }),
     })
       .then(async (response) => {
         const data = (await response.json()) as { message?: string; error?: string };
@@ -655,6 +653,7 @@ export default function KycPanelPage() {
   };
 
   const onLogout = () => {
+    void fetch("/api/kyc/logout", { method: "POST" });
     setSessionUser(null);
     setAdminDashboard(null);
     setAdminError("");
@@ -692,7 +691,6 @@ export default function KycPanelPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: sessionUser.id,
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       }),
@@ -891,7 +889,7 @@ export default function KycPanelPage() {
             <button
               type="button"
               className="kyc-doc-nav-btn kyc-admin-refresh"
-              onClick={() => loadAdminDashboard(sessionUser.id)}
+              onClick={() => loadAdminDashboard()}
               disabled={adminLoading}
             >
               {adminLoading ? "Actualizando..." : "Actualizar"}

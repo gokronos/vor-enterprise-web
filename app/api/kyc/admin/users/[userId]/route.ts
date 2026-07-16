@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { unlink } from "node:fs/promises";
 import path from "node:path";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
+import { readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
 
 function toNumber(value: string | null): number {
   const parsed = Number((value || "").trim());
@@ -24,13 +25,10 @@ async function safeDeletePublicFile(fileUrl: string | null | undefined): Promise
 export async function DELETE(request: Request, context: { params: Promise<{ userId: string }> }) {
   try {
     const { userId } = await context.params;
-    const { searchParams } = new URL(request.url);
-    const adminId = toNumber(searchParams.get("adminId"));
     const targetUserId = toNumber(userId);
-
-    if (!adminId || Number.isNaN(adminId)) {
-      return NextResponse.json({ error: "Identificador de administrador inválido." }, { status: 400 });
-    }
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "ADMIN_PRINCIPAL") return forbidden();
 
     if (!targetUserId || Number.isNaN(targetUserId)) {
       return NextResponse.json({ error: "Identificador de usuario inválido." }, { status: 400 });
@@ -46,7 +44,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ user
         WHERE id = ?
         LIMIT 1
       `,
-      [adminId],
+      [session.userId],
     );
 
     if (!Array.isArray(adminRows) || adminRows.length === 0) {

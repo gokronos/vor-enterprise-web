@@ -22,7 +22,12 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=vor_enterprise
+KYC_SESSION_SECRET=reemplace-por-un-secreto-aleatorio-de-al-menos-32-caracteres
 ```
+
+`KYC_SESSION_SECRET` es obligatorio para iniciar sesión. En producción también se recomienda usar un usuario MySQL dedicado, sin permisos para administrar otras bases de datos.
+
+Para crear el administrador principal por primera vez, configure `KYC_MAIN_USER` y una `KYC_MAIN_PASSWORD` de al menos 12 caracteres. La aplicación no crea credenciales administrativas predeterminadas.
 
 ### 3. Crear base de datos y tabla
 

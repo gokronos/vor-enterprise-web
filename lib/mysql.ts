@@ -121,11 +121,11 @@ export async function ensureKycSchema(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
-  const adminUsername = (process.env.KYC_MAIN_USER || "admin").trim();
-  const adminPassword = (process.env.KYC_MAIN_PASSWORD || "Admin12345!").trim();
+  const adminUsername = (process.env.KYC_MAIN_USER || "").trim();
+  const adminPassword = (process.env.KYC_MAIN_PASSWORD || "").trim();
   const adminFullName = (process.env.KYC_MAIN_FULL_NAME || "Usuario Principal").trim();
 
-  if (adminUsername && adminPassword) {
+  if (adminUsername && adminPassword.length >= 12) {
     const [adminRows] = await db.query(
       `
         SELECT id
