@@ -123,6 +123,17 @@ export async function ensureKycSchema(): Promise<void> {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
   `);
 
+  await db.query(`
+    CREATE TABLE IF NOT EXISTS kyc_document_files (
+      file_name VARCHAR(255) NOT NULL,
+      mime_type VARCHAR(100) NOT NULL DEFAULT 'application/pdf',
+      file_size INT UNSIGNED NOT NULL,
+      contents LONGBLOB NOT NULL,
+      created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      PRIMARY KEY (file_name)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `);
+
   const adminUsername = (process.env.KYC_MAIN_USER || "").trim();
   const adminPassword = (process.env.KYC_MAIN_PASSWORD || "").trim();
   const adminFullName = (process.env.KYC_MAIN_FULL_NAME || "Usuario Principal").trim();

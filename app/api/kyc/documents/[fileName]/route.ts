@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { NextResponse } from "next/server";
-import { getKycDocumentCandidates, getKycDocumentFileName } from "@/lib/kyc-documents";
+import { getKycDocumentCandidates, getKycDocumentFileName, readKycDocumentFromDatabase } from "@/lib/kyc-documents";
 import { readKycSession, unauthorized } from "@/lib/kyc-session";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 
@@ -50,6 +50,18 @@ export async function GET(request: Request, context: { params: Promise<{ fileNam
     } catch {
       // Busca también en la ubicación anterior durante la migración.
     }
+  }
+
+  const databaseContents = await readKycDocumentFromDatabase(fileName);
+  if (databaseContents) {
+    return new NextResponse(new Uint8Array(databaseContents), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="${fileName}"`,
+        "Cache-Control": "private, no-store",
+        "X-Content-Type-Options": "nosniff",
+      },
+    });
   }
 
   return NextResponse.json({ error: "El archivo no está disponible." }, { status: 404 });
