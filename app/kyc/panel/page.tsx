@@ -272,24 +272,26 @@ export default function KycPanelPage() {
         bankCertificatePdfPath: parsed.bankCertificatePdfPath || null,
         shareholderCompositionPdfPath: parsed.shareholderCompositionPdfPath || null,
       };
-      setSessionUser(hydratedUser);
+      queueMicrotask(() => {
+        setSessionUser(hydratedUser);
 
-      if (hydratedUser.role === "ADMIN_PRINCIPAL") {
-        loadAdminDashboard();
-      }
+        if (hydratedUser.role === "ADMIN_PRINCIPAL") {
+          loadAdminDashboard();
+        }
 
-      setEditableProfile({
-        fullName: hydratedUser.fullName,
-        nationality: hydratedUser.nationality,
-        departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
-        municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
-        address: hydratedUser.address,
-        email: hydratedUser.email,
-        phone: hydratedUser.phone,
-        sourceOfFunds: hydratedUser.sourceOfFunds,
-        companyName: hydratedUser.companyName || "",
-        legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
-        taxId: hydratedUser.taxId || "",
+        setEditableProfile({
+          fullName: hydratedUser.fullName,
+          nationality: hydratedUser.nationality,
+          departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
+          municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
+          address: hydratedUser.address,
+          email: hydratedUser.email,
+          phone: hydratedUser.phone,
+          sourceOfFunds: hydratedUser.sourceOfFunds,
+          companyName: hydratedUser.companyName || "",
+          legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
+          taxId: hydratedUser.taxId || "",
+        });
       });
     } catch {
       window.sessionStorage.removeItem("vorKycSessionUser");
@@ -317,9 +319,6 @@ export default function KycPanelPage() {
           }
         })
         .catch((error) => console.error("Error loading municipalities:", error));
-    } else {
-      setMunicipalities([]);
-      setEditableProfile((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [editableProfile.departmentId]);
 
@@ -767,13 +766,7 @@ export default function KycPanelPage() {
     ];
   }, [sessionUser]);
 
-  const activeDocument = documents[activeDoc] || null;
-
-  useEffect(() => {
-    if (activeDoc >= documents.length) {
-      setActiveDoc(0);
-    }
-  }, [activeDoc, documents.length]);
+  const activeDocument = documents[activeDoc < documents.length ? activeDoc : 0] || null;
 
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
@@ -1044,7 +1037,10 @@ export default function KycPanelPage() {
                 <span>Departamento</span>
                 <select
                   value={editableProfile.departmentId}
-                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value }))}
+                  onChange={(event) => {
+                    setMunicipalities([]);
+                    setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value, municipalityId: "" }));
+                  }}
                 >
                   <option value="">Seleccione un departamento</option>
                   {departments.map((dept) => (
