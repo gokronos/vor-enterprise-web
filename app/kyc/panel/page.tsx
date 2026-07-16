@@ -1135,6 +1135,57 @@ export default function KycPanelPage() {
               </tbody>
             </table>
           </div>
+
+          <form className="kyc-password-form" onSubmit={onChangePassword} aria-label="Cambiar contraseña de administrador">
+            <p className="kyc-section-label">CAMBIAR CONTRASEÑA DEL ADMINISTRADOR</p>
+
+            <div className="kyc-password-fields">
+              <label className="kyc-login-field">
+                <span>Contraseña actual</span>
+                <input
+                  type="password"
+                  placeholder="Ingrese su contraseña actual"
+                  value={passwordForm.oldPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, oldPassword: e.target.value }))}
+                  required
+                  autoComplete="current-password"
+                />
+              </label>
+
+              <label className="kyc-login-field">
+                <span>Nueva contraseña</span>
+                <input
+                  type="password"
+                  placeholder="Mínimo 8 caracteres"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+
+              <label className="kyc-login-field">
+                <span>Confirmar nueva contraseña</span>
+                <input
+                  type="password"
+                  placeholder="Repita la nueva contraseña"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                  autoComplete="new-password"
+                />
+              </label>
+            </div>
+
+            <div className="kyc-password-footer">
+              <button type="submit" className="kyc-login-submit kyc-password-submit" disabled={changingPassword}>
+                {changingPassword ? "Actualizando..." : "Cambiar contraseña"}
+              </button>
+
+              {passwordMessage ? <p className="kyc-submit-feedback kyc-submit-feedback--ok">{passwordMessage}</p> : null}
+              {passwordError ? <p className="kyc-submit-feedback kyc-submit-feedback--error">{passwordError}</p> : null}
+            </div>
+          </form>
         </section>
       ) : (
         <section className="kyc-client-card" aria-label="Mi registro KYC">
@@ -1449,7 +1500,7 @@ export default function KycPanelPage() {
                   <span>Nueva contraseña</span>
                   <input
                     type="password"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 8 caracteres"
                     value={passwordForm.newPassword}
                     onChange={(e) => setPasswordForm((prev) => ({ ...prev, newPassword: e.target.value }))}
                     required

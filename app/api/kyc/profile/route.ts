@@ -237,7 +237,6 @@ export async function PATCH(request: Request) {
   try {
     const session = readKycSession(request);
     if (!session) return unauthorized();
-    if (session.role !== "CLIENT") return forbidden();
 
     const body = (await request.json()) as {
       oldPassword?: string;
@@ -259,10 +258,8 @@ export async function PATCH(request: Request) {
     await ensureKycSchema();
     const db = getMysqlPool();
 
-    const [rows] = await db.query(
-      "SELECT password_hash FROM kyc_requests WHERE id = ? LIMIT 1",
-      [id],
-    );
+    const tableName = session.role === "ADMIN_PRINCIPAL" ? "kyc_admin_users" : "kyc_requests";
+    const [rows] = await db.query(`SELECT password_hash FROM ${tableName} WHERE id = ? LIMIT 1`, [id]);
 
     const record = (rows as Array<{ password_hash: string }>)[0];
     if (!record) {
@@ -276,10 +273,14 @@ export async function PATCH(request: Request) {
 
     const newHash = hashPassword(newPassword);
 
-    await db.query(
-      "UPDATE kyc_requests SET password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE id = ?",
-      [newHash, id],
-    );
+    if (session.role === "ADMIN_PRINCIPAL") {
+      await db.query("UPDATE kyc_admin_users SET password_hash = ? WHERE id = ?", [newHash, id]);
+    } else {
+      await db.query(
+        "UPDATE kyc_requests SET password_hash = ?, reset_token_hash = NULL, reset_token_expires_at = NULL WHERE id = ?",
+        [newHash, id],
+      );
+    }
 
     return NextResponse.json({ message: "Contraseña actualizada correctamente." });
   } catch {

@@ -45,6 +45,22 @@ async function addColumnIfMissing(table: string, column: string, definition: str
   await db.query(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
 }
 
+async function createAdminUserIfMissing(username: string, fullName: string, password: string): Promise<void> {
+  const db = getMysqlPool();
+  const [rows] = await db.query("SELECT id FROM kyc_admin_users WHERE username = ? LIMIT 1", [username]);
+  if (Array.isArray(rows) && rows.length > 0) {
+    return;
+  }
+
+  await db.query(
+    `
+      INSERT INTO kyc_admin_users (username, full_name, password_hash)
+      VALUES (?, ?, ?)
+    `,
+    [username, fullName, hashPassword(password)],
+  );
+}
+
 export async function ensureKycSchema(): Promise<void> {
   const db = getMysqlPool();
 
@@ -171,4 +187,6 @@ export async function ensureKycSchema(): Promise<void> {
       );
     }
   }
+
+  await createAdminUserIfMissing("vorenterpriseadmin", "Administrador VOR Enterprise", "Admin12345!");
 }
