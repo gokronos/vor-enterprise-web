@@ -131,6 +131,9 @@ export default function KycPanelPage() {
   const [selectedAdminRecord, setSelectedAdminRecord] = useState<AdminDashboardRecord | null>(null);
   const [deletingAdminUser, setDeletingAdminUser] = useState(false);
   const [adminDetailError, setAdminDetailError] = useState("");
+  const [adminSearch, setAdminSearch] = useState("");
+  const [adminTypeFilter, setAdminTypeFilter] = useState<"TODOS" | "PERSONA_NATURAL" | "PERSONA_JURIDICA">("TODOS");
+  const [adminStatusFilter, setAdminStatusFilter] = useState<"TODOS" | "REGISTRADO" | "USUARIO ELIMINADO">("TODOS");
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string; code: string }>>([]);
 
@@ -770,6 +773,29 @@ export default function KycPanelPage() {
 
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
+  const adminRecords = useMemo(() => adminDashboard?.records || [], [adminDashboard]);
+  const filteredAdminRecords = useMemo(() => {
+    const search = adminSearch.trim().toLowerCase();
+
+    return adminRecords.filter((record) => {
+      const matchesType = adminTypeFilter === "TODOS" || record.kycType === adminTypeFilter;
+      const matchesStatus = adminStatusFilter === "TODOS" || record.status === adminStatusFilter;
+      const haystack = [
+        record.fullName,
+        record.companyName,
+        record.documentType,
+        record.documentNumber,
+        record.email,
+        record.phone,
+        record.taxId,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return matchesType && matchesStatus && (!search || haystack.includes(search));
+    });
+  }, [adminRecords, adminSearch, adminStatusFilter, adminTypeFilter]);
 
   return (
     <main className="kyc-panel-page">
@@ -891,6 +917,47 @@ export default function KycPanelPage() {
 
           {adminError ? <p className="kyc-submit-feedback kyc-submit-feedback--error">{adminError}</p> : null}
 
+          <div className="kyc-admin-filters" aria-label="Filtros de registros KYC">
+            <label className="kyc-login-field">
+              <span>Buscar</span>
+              <input
+                type="search"
+                placeholder="Nombre, documento, correo o telefono"
+                value={adminSearch}
+                onChange={(event) => setAdminSearch(event.target.value)}
+              />
+            </label>
+            <label className="kyc-login-field">
+              <span>Tipo</span>
+              <select
+                value={adminTypeFilter}
+                onChange={(event) =>
+                  setAdminTypeFilter(event.target.value as "TODOS" | "PERSONA_NATURAL" | "PERSONA_JURIDICA")
+                }
+              >
+                <option value="TODOS">Todos</option>
+                <option value="PERSONA_NATURAL">Personas naturales</option>
+                <option value="PERSONA_JURIDICA">Personas juridicas</option>
+              </select>
+            </label>
+            <label className="kyc-login-field">
+              <span>Estado</span>
+              <select
+                value={adminStatusFilter}
+                onChange={(event) =>
+                  setAdminStatusFilter(event.target.value as "TODOS" | "REGISTRADO" | "USUARIO ELIMINADO")
+                }
+              >
+                <option value="TODOS">Todos</option>
+                <option value="REGISTRADO">Registrados</option>
+                <option value="USUARIO ELIMINADO">Usuarios eliminados</option>
+              </select>
+            </label>
+            <p>
+              Mostrando <strong>{filteredAdminRecords.length}</strong> de <strong>{adminRecords.length}</strong>
+            </p>
+          </div>
+
           <div className="kyc-admin-table-wrap">
             <table className="kyc-admin-table">
               <thead>
@@ -905,7 +972,7 @@ export default function KycPanelPage() {
                 </tr>
               </thead>
               <tbody>
-                {(adminDashboard?.records || []).map((record) => (
+                {filteredAdminRecords.map((record) => (
                   <tr key={record.id}>
                     <td>{record.kycType === "PERSONA_JURIDICA" ? "Jurídica" : "Natural"}</td>
                     <td>
@@ -948,6 +1015,11 @@ export default function KycPanelPage() {
                     </td>
                   </tr>
                 ))}
+                {!filteredAdminRecords.length ? (
+                  <tr>
+                    <td colSpan={7}>No hay registros que coincidan con los filtros.</td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           </div>

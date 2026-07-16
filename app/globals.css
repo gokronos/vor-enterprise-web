@@ -2077,6 +2077,25 @@ body {
   min-height: 100%;
 }
 
+.kyc-admin-filters {
+  margin-top: 0.95rem;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) minmax(170px, 0.8fr) minmax(170px, 0.8fr) auto;
+  gap: 0.7rem;
+  align-items: end;
+}
+
+.kyc-admin-filters p {
+  margin: 0;
+  color: #a9cde0;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.kyc-admin-filters strong {
+  color: #f2fcff;
+}
+
 .kyc-admin-table-wrap {
   margin-top: 0.85rem;
   border: 1px solid rgba(0, 240, 255, 0.2);
@@ -3105,6 +3124,14 @@ body {
 
   .kyc-admin-summary-grid {
     grid-template-columns: 1fr;
+  }
+
+  .kyc-admin-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .kyc-admin-filters p {
+    white-space: normal;
   }
 }
 
