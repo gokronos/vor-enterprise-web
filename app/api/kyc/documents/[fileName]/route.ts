@@ -45,6 +45,7 @@ export async function GET(request: Request, context: { params: Promise<{ fileNam
           "Content-Disposition": `inline; filename="${fileName}"`,
           "Cache-Control": "private, no-store",
           "X-Content-Type-Options": "nosniff",
+          "X-KYC-Document-Storage": "filesystem",
         },
       });
     } catch {
@@ -60,9 +61,16 @@ export async function GET(request: Request, context: { params: Promise<{ fileNam
         "Content-Disposition": `inline; filename="${fileName}"`,
         "Cache-Control": "private, no-store",
         "X-Content-Type-Options": "nosniff",
+        "X-KYC-Document-Storage": "database",
       },
     });
   }
 
-  return NextResponse.json({ error: "El archivo no está disponible." }, { status: 404 });
+  return NextResponse.json(
+    {
+      error: "El archivo no está disponible.",
+      detail: "El registro existe, pero no se encontró el PDF en el filesystem ni en el respaldo de base de datos.",
+    },
+    { status: 404, headers: { "X-KYC-Document-Storage": "missing" } },
+  );
 }
