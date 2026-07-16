@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
+import { readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
+import { toKycDocumentUrl } from "@/lib/kyc-documents";
 
 type KycRow = {
   id: number;
@@ -32,19 +34,11 @@ function normalizeStatus(status: string | null | undefined): "REGISTRADO" | "USU
   return status === "ELIMINADO" ? "USUARIO ELIMINADO" : "REGISTRADO";
 }
 
-function toAdminId(value: string | null): number {
-  const parsed = Number((value || "").trim());
-  return Number.isFinite(parsed) ? parsed : NaN;
-}
-
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const adminId = toAdminId(searchParams.get("adminId"));
-
-    if (!adminId || Number.isNaN(adminId)) {
-      return NextResponse.json({ error: "Identificador de administrador inválido." }, { status: 400 });
-    }
+    const session = readKycSession(request);
+    if (!session) return unauthorized();
+    if (session.role !== "ADMIN_PRINCIPAL") return forbidden();
 
     await ensureKycSchema();
     const db = getMysqlPool();
@@ -56,7 +50,7 @@ export async function GET(request: Request) {
         WHERE id = ?
         LIMIT 1
       `,
-      [adminId],
+      [session.userId],
     );
 
     if (!Array.isArray(adminRows) || adminRows.length === 0) {
@@ -131,13 +125,13 @@ export async function GET(request: Request) {
       status: normalizeStatus(row.status),
       createdAt: row.created_at,
       documents: [
-        { key: "cc", title: "Cedula", url: row.cc_pdf_path },
-        { key: "rut", title: "RUT", url: row.rut_pdf_path },
-        { key: "chamber", title: "Camara de Comercio", url: row.chamber_pdf_path },
-        { key: "legalRepCc", title: "CC Representante Legal", url: row.legal_rep_cc_pdf_path },
-        { key: "financial", title: "Estados Financieros", url: row.financial_statements_pdf_path },
-        { key: "bank", title: "Certificado Bancario", url: row.bank_certificate_pdf_path },
-        { key: "shareholder", title: "Composicion Accionaria", url: row.shareholder_composition_pdf_path },
+        { key: "cc", title: "Cedula", url: toKycDocumentUrl(row.cc_pdf_path) },
+        { key: "rut", title: "RUT", url: toKycDocumentUrl(row.rut_pdf_path) },
+        { key: "chamber", title: "Camara de Comercio", url: toKycDocumentUrl(row.chamber_pdf_path) },
+        { key: "legalRepCc", title: "CC Representante Legal", url: toKycDocumentUrl(row.legal_rep_cc_pdf_path) },
+        { key: "financial", title: "Estados Financieros", url: toKycDocumentUrl(row.financial_statements_pdf_path) },
+        { key: "bank", title: "Certificado Bancario", url: toKycDocumentUrl(row.bank_certificate_pdf_path) },
+        { key: "shareholder", title: "Composicion Accionaria", url: toKycDocumentUrl(row.shareholder_composition_pdf_path) },
       ].filter((doc) => !!doc.url),
     }));
 

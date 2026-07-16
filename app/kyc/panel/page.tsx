@@ -134,11 +134,11 @@ export default function KycPanelPage() {
   const [departments, setDepartments] = useState<Array<{ id: number; name: string; code: string }>>([]);
   const [municipalities, setMunicipalities] = useState<Array<{ id: number; name: string; code: string }>>([]);
 
-  const loadAdminDashboard = (adminId: number) => {
+  const loadAdminDashboard = () => {
     setAdminLoading(true);
     setAdminError("");
 
-    fetch(`/api/kyc/admin/dashboard?adminId=${adminId}`)
+    fetch("/api/kyc/admin/dashboard")
       .then(async (response) => {
         const data = (await response.json()) as {
           error?: string;
@@ -211,7 +211,7 @@ export default function KycPanelPage() {
     setDeletingAdminUser(true);
     setAdminDetailError("");
 
-    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}?adminId=${sessionUser.id}`, {
+    fetch(`/api/kyc/admin/users/${selectedAdminRecord.id}`, {
       method: "DELETE",
     })
       .then(async (response) => {
@@ -222,7 +222,7 @@ export default function KycPanelPage() {
         }
 
         setSelectedAdminRecord(null);
-        loadAdminDashboard(sessionUser.id);
+        loadAdminDashboard();
       })
       .catch((error: unknown) => {
         setAdminDetailError(
@@ -272,24 +272,26 @@ export default function KycPanelPage() {
         bankCertificatePdfPath: parsed.bankCertificatePdfPath || null,
         shareholderCompositionPdfPath: parsed.shareholderCompositionPdfPath || null,
       };
-      setSessionUser(hydratedUser);
+      queueMicrotask(() => {
+        setSessionUser(hydratedUser);
 
-      if (hydratedUser.role === "ADMIN_PRINCIPAL") {
-        loadAdminDashboard(hydratedUser.id);
-      }
+        if (hydratedUser.role === "ADMIN_PRINCIPAL") {
+          loadAdminDashboard();
+        }
 
-      setEditableProfile({
-        fullName: hydratedUser.fullName,
-        nationality: hydratedUser.nationality,
-        departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
-        municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
-        address: hydratedUser.address,
-        email: hydratedUser.email,
-        phone: hydratedUser.phone,
-        sourceOfFunds: hydratedUser.sourceOfFunds,
-        companyName: hydratedUser.companyName || "",
-        legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
-        taxId: hydratedUser.taxId || "",
+        setEditableProfile({
+          fullName: hydratedUser.fullName,
+          nationality: hydratedUser.nationality,
+          departmentId: hydratedUser.departmentId ? String(hydratedUser.departmentId) : "",
+          municipalityId: hydratedUser.municipalityId ? String(hydratedUser.municipalityId) : "",
+          address: hydratedUser.address,
+          email: hydratedUser.email,
+          phone: hydratedUser.phone,
+          sourceOfFunds: hydratedUser.sourceOfFunds,
+          companyName: hydratedUser.companyName || "",
+          legalRepresentative: hydratedUser.legalRepresentative || hydratedUser.fullName,
+          taxId: hydratedUser.taxId || "",
+        });
       });
     } catch {
       window.sessionStorage.removeItem("vorKycSessionUser");
@@ -317,9 +319,6 @@ export default function KycPanelPage() {
           }
         })
         .catch((error) => console.error("Error loading municipalities:", error));
-    } else {
-      setMunicipalities([]);
-      setEditableProfile((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [editableProfile.departmentId]);
 
@@ -384,7 +383,7 @@ export default function KycPanelPage() {
         setSessionUser(normalizedUser);
 
         if (normalizedUser.role === "ADMIN_PRINCIPAL") {
-          loadAdminDashboard(normalizedUser.id);
+          loadAdminDashboard();
           setEditableProfile(initialEditableProfile);
         } else {
           setAdminDashboard(null);
@@ -454,7 +453,6 @@ export default function KycPanelPage() {
     }
 
     const payload = new FormData();
-    payload.append("id", String(sessionUser.id));
     payload.append("kycType", sessionUser.kycType);
     payload.append("fullName", editableProfile.fullName);
     payload.append("nationality", editableProfile.nationality);
@@ -627,7 +625,6 @@ export default function KycPanelPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: sessionUser.id }),
     })
       .then(async (response) => {
         const data = (await response.json()) as { message?: string; error?: string };
@@ -655,6 +652,7 @@ export default function KycPanelPage() {
   };
 
   const onLogout = () => {
+    void fetch("/api/kyc/logout", { method: "POST" });
     setSessionUser(null);
     setAdminDashboard(null);
     setAdminError("");
@@ -692,7 +690,6 @@ export default function KycPanelPage() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        id: sessionUser.id,
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
       }),
@@ -769,13 +766,7 @@ export default function KycPanelPage() {
     ];
   }, [sessionUser]);
 
-  const activeDocument = documents[activeDoc] || null;
-
-  useEffect(() => {
-    if (activeDoc >= documents.length) {
-      setActiveDoc(0);
-    }
-  }, [activeDoc, documents.length]);
+  const activeDocument = documents[activeDoc < documents.length ? activeDoc : 0] || null;
 
   const isAdminSession = sessionUser?.role === "ADMIN_PRINCIPAL";
   const clientTypeLabel = sessionUser?.kycType === "PERSONA_JURIDICA" ? "Persona Juridica" : "Persona Natural";
@@ -891,7 +882,7 @@ export default function KycPanelPage() {
             <button
               type="button"
               className="kyc-doc-nav-btn kyc-admin-refresh"
-              onClick={() => loadAdminDashboard(sessionUser.id)}
+              onClick={() => loadAdminDashboard()}
               disabled={adminLoading}
             >
               {adminLoading ? "Actualizando..." : "Actualizar"}
@@ -1046,7 +1037,10 @@ export default function KycPanelPage() {
                 <span>Departamento</span>
                 <select
                   value={editableProfile.departmentId}
-                  onChange={(event) => setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value }))}
+                  onChange={(event) => {
+                    setMunicipalities([]);
+                    setEditableProfile((prev) => ({ ...prev, departmentId: event.target.value, municipalityId: "" }));
+                  }}
                 >
                   <option value="">Seleccione un departamento</option>
                   {departments.map((dept) => (

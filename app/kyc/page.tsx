@@ -139,9 +139,6 @@ export default function KycPage() {
           }
         })
         .catch((err) => console.error("Error loading municipalities:", err));
-    } else {
-      setMunicipalities([]);
-      setNaturalForm((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [naturalForm.departmentId]);
 
@@ -155,9 +152,6 @@ export default function KycPage() {
           }
         })
         .catch((err) => console.error("Error loading municipalities:", err));
-    } else {
-      setMunicipalities([]);
-      setJuridicalForm((prev) => ({ ...prev, municipalityId: "" }));
     }
   }, [juridicalForm.departmentId]);
 
@@ -594,7 +588,10 @@ export default function KycPage() {
                     <span>Departamento (Opcional)</span>
                     <select
                       value={naturalForm.departmentId}
-                      onChange={(event) => setNaturalForm((prev) => ({ ...prev, departmentId: event.target.value }))}
+                      onChange={(event) => {
+                        setMunicipalities([]);
+                        setNaturalForm((prev) => ({ ...prev, departmentId: event.target.value, municipalityId: "" }));
+                      }}
                     >
                       <option value="">Seleccione un departamento</option>
                       {departments.map((dept) => (
@@ -818,7 +815,10 @@ export default function KycPage() {
                     <span>Departamento (Opcional)</span>
                     <select
                       value={juridicalForm.departmentId}
-                      onChange={(event) => setJuridicalForm((prev) => ({ ...prev, departmentId: event.target.value }))}
+                      onChange={(event) => {
+                        setMunicipalities([]);
+                        setJuridicalForm((prev) => ({ ...prev, departmentId: event.target.value, municipalityId: "" }));
+                      }}
                     >
                       <option value="">Seleccione un departamento</option>
                       {departments.map((dept) => (

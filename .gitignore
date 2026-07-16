@@ -33,6 +33,12 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# Los documentos KYC contienen datos personales y nunca deben versionarse.
+/public/uploads/kyc/*
+!/public/uploads/kyc/.gitkeep
+/.data/
 
 # vercel
 .vercel

@@ -22,7 +22,12 @@ DB_PORT=3306
 DB_USER=root
 DB_PASSWORD=
 DB_NAME=vor_enterprise
+KYC_SESSION_SECRET=reemplace-por-un-secreto-aleatorio-de-al-menos-32-caracteres
 ```
+
+`KYC_SESSION_SECRET` es obligatorio para iniciar sesión. En producción también se recomienda usar un usuario MySQL dedicado, sin permisos para administrar otras bases de datos.
+
+Para crear el administrador principal por primera vez, configure `KYC_MAIN_USER` y una `KYC_MAIN_PASSWORD` de al menos 12 caracteres. La aplicación no crea credenciales administrativas predeterminadas.
 
 ### 3. Crear base de datos y tabla
 
@@ -47,7 +52,8 @@ npm run dev
 - Los soportes del formulario KYC aceptan solo archivos PDF (`.pdf`).
 - El PDF de cédula es obligatorio.
 - El PDF de RUT es opcional.
-- Los archivos se guardan en `public/uploads/kyc` y la ruta queda almacenada en MySQL.
+- Los archivos nuevos se guardan en `.data/kyc`, fuera del directorio público, y se descargan mediante una API autenticada.
+- El tamaño máximo por PDF es 10 MB y el servidor valida la firma real del archivo.
 
 ## Registro e inicio de sesión KYC
 

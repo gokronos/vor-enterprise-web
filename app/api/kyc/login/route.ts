@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 import { verifyPassword } from "@/lib/password";
+import { createKycSessionToken, setKycSessionCookie } from "@/lib/kyc-session";
+import { toKycDocumentUrl } from "@/lib/kyc-documents";
 
 type LoginPayload = {
   documentNumber?: string;
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
     const admin = (adminRows as Array<{ id: number; username: string; full_name: string; password_hash: string }>)[0];
 
     if (admin && verifyPassword(password, admin.password_hash)) {
-      return NextResponse.json({
+      const response = NextResponse.json({
         message: "Inicio de sesión exitoso.",
         user: {
           id: admin.id,
@@ -71,6 +73,8 @@ export async function POST(request: Request) {
           shareholderCompositionPdfPath: null,
         },
       });
+      setKycSessionCookie(response, createKycSessionToken(admin.id, "ADMIN_PRINCIPAL"));
+      return response;
     }
 
     const [rows] = await db.query(
@@ -152,7 +156,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: "Inicio de sesión exitoso.",
       user: {
         id: user.id,
@@ -172,15 +176,17 @@ export async function POST(request: Request) {
         taxId: user.tax_id,
         beneficialOwners: user.beneficial_owners,
         notes: user.notes,
-        ccPdfPath: user.cc_pdf_path,
-        rutPdfPath: user.rut_pdf_path,
-        chamberPdfPath: user.chamber_pdf_path,
-        legalRepCcPdfPath: user.legal_rep_cc_pdf_path,
-        financialStatementsPdfPath: user.financial_statements_pdf_path,
-        bankCertificatePdfPath: user.bank_certificate_pdf_path,
-        shareholderCompositionPdfPath: user.shareholder_composition_pdf_path,
+        ccPdfPath: toKycDocumentUrl(user.cc_pdf_path),
+        rutPdfPath: toKycDocumentUrl(user.rut_pdf_path),
+        chamberPdfPath: toKycDocumentUrl(user.chamber_pdf_path),
+        legalRepCcPdfPath: toKycDocumentUrl(user.legal_rep_cc_pdf_path),
+        financialStatementsPdfPath: toKycDocumentUrl(user.financial_statements_pdf_path),
+        bankCertificatePdfPath: toKycDocumentUrl(user.bank_certificate_pdf_path),
+        shareholderCompositionPdfPath: toKycDocumentUrl(user.shareholder_composition_pdf_path),
       },
     });
+    setKycSessionCookie(response, createKycSessionToken(user.id, "CLIENT"));
+    return response;
   } catch (error) {
     const debugMessage = error instanceof Error ? error.message : "Error desconocido";
 
