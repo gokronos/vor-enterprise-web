@@ -4,6 +4,23 @@ import { randomUUID } from "node:crypto";
 
 export const MAX_KYC_PDF_SIZE = 10 * 1024 * 1024;
 
+function resolveStorageDir(configuredPath: string): string {
+  return path.isAbsolute(configuredPath)
+    ? configuredPath
+    : path.resolve(/*turbopackIgnore: true*/ process.cwd(), configuredPath);
+}
+
+function getKycStorageDirs(): string[] {
+  const configuredStorageDir = (process.env.KYC_STORAGE_DIR || "").trim();
+  const candidates = [
+    configuredStorageDir ? resolveStorageDir(configuredStorageDir) : "",
+    path.resolve(/*turbopackIgnore: true*/ process.cwd(), "..", "kyc-storage"),
+    path.join(process.cwd(), ".data"),
+  ].filter(Boolean);
+
+  return [...new Set(candidates)];
+}
+
 export async function persistKycPdf(file: File, prefix: string): Promise<string> {
   if (file.size === 0 || file.size > MAX_KYC_PDF_SIZE) {
     throw new Error("El PDF debe pesar entre 1 byte y 10 MB.");
@@ -14,13 +31,21 @@ export async function persistKycPdf(file: File, prefix: string): Promise<string>
     throw new Error("El archivo adjunto no es un PDF válido.");
   }
 
-  const uploadDir = path.join(process.cwd(), ".data", "kyc");
-  await mkdir(uploadDir, { recursive: true });
-
   const fileName = `${Date.now()}-${prefix}-${randomUUID()}.pdf`;
-  await writeFile(path.join(uploadDir, fileName), buffer, { flag: "wx" });
+  const errors: unknown[] = [];
 
-  return `kyc/${fileName}`;
+  for (const storageDir of getKycStorageDirs()) {
+    try {
+      const uploadDir = path.join(storageDir, "kyc");
+      await mkdir(uploadDir, { recursive: true });
+      await writeFile(path.join(uploadDir, fileName), buffer, { flag: "wx" });
+      return `kyc/${fileName}`;
+    } catch (error) {
+      errors.push(error);
+    }
+  }
+
+  throw errors[0] instanceof Error ? errors[0] : new Error("No fue posible guardar el PDF.");
 }
 
 export function getKycDocumentFileName(storedPath: string): string | null {
@@ -36,7 +61,7 @@ export function toKycDocumentUrl(storedPath: string | null | undefined): string 
 
 export function getKycDocumentCandidates(fileName: string): string[] {
   return [
-    path.join(process.cwd(), ".data", "kyc", fileName),
+    ...getKycStorageDirs().map((storageDir) => path.join(storageDir, "kyc", fileName)),
     path.join(process.cwd(), "public", "uploads", "kyc", fileName),
   ];
 }
