@@ -38,6 +38,7 @@ yarn-error.log*
 # Los documentos KYC contienen datos personales y nunca deben versionarse.
 /public/uploads/kyc/*
 !/public/uploads/kyc/.gitkeep
+/.data/
 
 # vercel
 .vercel

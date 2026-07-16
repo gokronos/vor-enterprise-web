@@ -1,25 +1,11 @@
 import { NextResponse } from "next/server";
-import { unlink } from "node:fs/promises";
-import path from "node:path";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 import { readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
+import { deleteKycDocument } from "@/lib/kyc-documents";
 
 function toNumber(value: string | null): number {
   const parsed = Number((value || "").trim());
   return Number.isFinite(parsed) ? parsed : NaN;
-}
-
-async function safeDeletePublicFile(fileUrl: string | null | undefined): Promise<void> {
-  if (!fileUrl || !fileUrl.startsWith("/uploads/kyc/")) {
-    return;
-  }
-
-  const absolutePath = path.join(process.cwd(), "public", fileUrl.replace(/^\//, ""));
-  try {
-    await unlink(absolutePath);
-  } catch {
-    // Ignora errores si el archivo ya no existe.
-  }
 }
 
 export async function DELETE(request: Request, context: { params: Promise<{ userId: string }> }) {
@@ -87,13 +73,13 @@ export async function DELETE(request: Request, context: { params: Promise<{ user
     await db.query("DELETE FROM kyc_requests WHERE id = ?", [targetUserId]);
 
     await Promise.all([
-      safeDeletePublicFile(record.cc_pdf_path),
-      safeDeletePublicFile(record.rut_pdf_path),
-      safeDeletePublicFile(record.chamber_pdf_path),
-      safeDeletePublicFile(record.legal_rep_cc_pdf_path),
-      safeDeletePublicFile(record.financial_statements_pdf_path),
-      safeDeletePublicFile(record.bank_certificate_pdf_path),
-      safeDeletePublicFile(record.shareholder_composition_pdf_path),
+      deleteKycDocument(record.cc_pdf_path),
+      deleteKycDocument(record.rut_pdf_path),
+      deleteKycDocument(record.chamber_pdf_path),
+      deleteKycDocument(record.legal_rep_cc_pdf_path),
+      deleteKycDocument(record.financial_statements_pdf_path),
+      deleteKycDocument(record.bank_certificate_pdf_path),
+      deleteKycDocument(record.shareholder_composition_pdf_path),
     ]);
 
     return NextResponse.json({ message: "Usuario eliminado definitivamente." });

@@ -52,7 +52,8 @@ npm run dev
 - Los soportes del formulario KYC aceptan solo archivos PDF (`.pdf`).
 - El PDF de cédula es obligatorio.
 - El PDF de RUT es opcional.
-- Los archivos se guardan en `public/uploads/kyc` y la ruta queda almacenada en MySQL.
+- Los archivos nuevos se guardan en `.data/kyc`, fuera del directorio público, y se descargan mediante una API autenticada.
+- El tamaño máximo por PDF es 10 MB y el servidor valida la firma real del archivo.
 
 ## Registro e inicio de sesión KYC
 

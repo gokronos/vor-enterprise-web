@@ -1,45 +1,11 @@
 import { NextResponse } from "next/server";
-import { mkdir, unlink, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { clearKycSessionCookie, readKycSession, unauthorized, forbidden } from "@/lib/kyc-session";
+import { deleteKycDocument, persistKycPdf, toKycDocumentUrl } from "@/lib/kyc-documents";
 
 function normalize(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
-}
-
-async function persistPdf(file: File, prefix: string): Promise<string> {
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  if (!isPdf) {
-    throw new Error("Solo se permiten archivos PDF.");
-  }
-
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "kyc");
-  await mkdir(uploadDir, { recursive: true });
-
-  const fileName = `${Date.now()}-${prefix}-${randomUUID()}.pdf`;
-  const filePath = path.join(uploadDir, fileName);
-  const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-  await writeFile(filePath, fileBuffer);
-
-  return `/uploads/kyc/${fileName}`;
-}
-
-async function safeDeletePublicFile(fileUrl: string | null | undefined): Promise<void> {
-  if (!fileUrl || !fileUrl.startsWith("/uploads/kyc/")) {
-    return;
-  }
-
-  const absolutePath = path.join(process.cwd(), "public", fileUrl.replace(/^\//, ""));
-
-  try {
-    await unlink(absolutePath);
-  } catch {
-    // Ignora errores si el archivo ya no existe.
-  }
 }
 
 export async function PUT(request: Request) {
@@ -125,44 +91,44 @@ export async function PUT(request: Request) {
     let shareholderCompositionPdfPath = existing.shareholder_composition_pdf_path;
 
     if (ccPdf instanceof File && ccPdf.size > 0) {
-      const newCcPath = await persistPdf(ccPdf, "cc");
-      await safeDeletePublicFile(existing.cc_pdf_path);
+      const newCcPath = await persistKycPdf(ccPdf, "cc");
+      await deleteKycDocument(existing.cc_pdf_path);
       ccPdfPath = newCcPath;
     }
 
     if (rutPdf instanceof File && rutPdf.size > 0) {
-      const newRutPath = await persistPdf(rutPdf, "rut");
-      await safeDeletePublicFile(existing.rut_pdf_path);
+      const newRutPath = await persistKycPdf(rutPdf, "rut");
+      await deleteKycDocument(existing.rut_pdf_path);
       rutPdfPath = newRutPath;
     }
 
     if (chamberPdf instanceof File && chamberPdf.size > 0) {
-      const newPath = await persistPdf(chamberPdf, "camara-comercio");
-      await safeDeletePublicFile(existing.chamber_pdf_path);
+      const newPath = await persistKycPdf(chamberPdf, "camara-comercio");
+      await deleteKycDocument(existing.chamber_pdf_path);
       chamberPdfPath = newPath;
     }
 
     if (legalRepCcPdf instanceof File && legalRepCcPdf.size > 0) {
-      const newPath = await persistPdf(legalRepCcPdf, "cc-representante");
-      await safeDeletePublicFile(existing.legal_rep_cc_pdf_path);
+      const newPath = await persistKycPdf(legalRepCcPdf, "cc-representante");
+      await deleteKycDocument(existing.legal_rep_cc_pdf_path);
       legalRepCcPdfPath = newPath;
     }
 
     if (financialStatementsPdf instanceof File && financialStatementsPdf.size > 0) {
-      const newPath = await persistPdf(financialStatementsPdf, "estados-financieros");
-      await safeDeletePublicFile(existing.financial_statements_pdf_path);
+      const newPath = await persistKycPdf(financialStatementsPdf, "estados-financieros");
+      await deleteKycDocument(existing.financial_statements_pdf_path);
       financialStatementsPdfPath = newPath;
     }
 
     if (bankCertificatePdf instanceof File && bankCertificatePdf.size > 0) {
-      const newPath = await persistPdf(bankCertificatePdf, "certificado-bancario");
-      await safeDeletePublicFile(existing.bank_certificate_pdf_path);
+      const newPath = await persistKycPdf(bankCertificatePdf, "certificado-bancario");
+      await deleteKycDocument(existing.bank_certificate_pdf_path);
       bankCertificatePdfPath = newPath;
     }
 
     if (shareholderCompositionPdf instanceof File && shareholderCompositionPdf.size > 0) {
-      const newPath = await persistPdf(shareholderCompositionPdf, "composicion-accionaria");
-      await safeDeletePublicFile(existing.shareholder_composition_pdf_path);
+      const newPath = await persistKycPdf(shareholderCompositionPdf, "composicion-accionaria");
+      await deleteKycDocument(existing.shareholder_composition_pdf_path);
       shareholderCompositionPdfPath = newPath;
     }
 
@@ -217,13 +183,13 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({
       message: "Información actualizada correctamente.",
-      ccPdfPath,
-      rutPdfPath,
-      chamberPdfPath,
-      legalRepCcPdfPath,
-      financialStatementsPdfPath,
-      bankCertificatePdfPath,
-      shareholderCompositionPdfPath,
+      ccPdfPath: toKycDocumentUrl(ccPdfPath),
+      rutPdfPath: toKycDocumentUrl(rutPdfPath),
+      chamberPdfPath: toKycDocumentUrl(chamberPdfPath),
+      legalRepCcPdfPath: toKycDocumentUrl(legalRepCcPdfPath),
+      financialStatementsPdfPath: toKycDocumentUrl(financialStatementsPdfPath),
+      bankCertificatePdfPath: toKycDocumentUrl(bankCertificatePdfPath),
+      shareholderCompositionPdfPath: toKycDocumentUrl(shareholderCompositionPdfPath),
     });
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error) {

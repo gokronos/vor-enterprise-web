@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
 import { ensureKycSchema, getMysqlPool } from "@/lib/mysql";
 import { hashPassword } from "@/lib/password";
+import { persistKycPdf } from "@/lib/kyc-documents";
 
 export const runtime = "nodejs";
 
@@ -14,24 +12,6 @@ function normalize(value: string | undefined): string {
 function formValue(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
-}
-
-async function persistPdf(file: File, prefix: string): Promise<string> {
-  const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
-  if (!isPdf) {
-    throw new Error("Solo se permiten archivos PDF.");
-  }
-
-  const uploadDir = path.join(process.cwd(), "public", "uploads", "kyc");
-  await mkdir(uploadDir, { recursive: true });
-
-  const fileName = `${Date.now()}-${prefix}-${randomUUID()}.pdf`;
-  const filePath = path.join(uploadDir, fileName);
-  const fileBuffer = Buffer.from(await file.arrayBuffer());
-
-  await writeFile(filePath, fileBuffer);
-
-  return `/uploads/kyc/${fileName}`;
 }
 
 export async function POST(request: Request) {
@@ -110,7 +90,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const ccPdfPath = await persistPdf(ccPdf, "cc");
+    const ccPdfPath = await persistKycPdf(ccPdf, "cc");
     let rutPdfPath: string | null = null;
     let chamberPdfPath: string | null = null;
     let legalRepCcPdfPath: string | null = null;
@@ -119,27 +99,27 @@ export async function POST(request: Request) {
     let shareholderCompositionPdfPath: string | null = null;
 
     if (rutPdf instanceof File && rutPdf.size > 0) {
-      rutPdfPath = await persistPdf(rutPdf, "rut");
+      rutPdfPath = await persistKycPdf(rutPdf, "rut");
     }
 
     if (chamberPdf instanceof File && chamberPdf.size > 0) {
-      chamberPdfPath = await persistPdf(chamberPdf, "camara-comercio");
+      chamberPdfPath = await persistKycPdf(chamberPdf, "camara-comercio");
     }
 
     if (legalRepCcPdf instanceof File && legalRepCcPdf.size > 0) {
-      legalRepCcPdfPath = await persistPdf(legalRepCcPdf, "cc-representante");
+      legalRepCcPdfPath = await persistKycPdf(legalRepCcPdf, "cc-representante");
     }
 
     if (financialStatementsPdf instanceof File && financialStatementsPdf.size > 0) {
-      financialStatementsPdfPath = await persistPdf(financialStatementsPdf, "estados-financieros");
+      financialStatementsPdfPath = await persistKycPdf(financialStatementsPdf, "estados-financieros");
     }
 
     if (bankCertificatePdf instanceof File && bankCertificatePdf.size > 0) {
-      bankCertificatePdfPath = await persistPdf(bankCertificatePdf, "certificado-bancario");
+      bankCertificatePdfPath = await persistKycPdf(bankCertificatePdf, "certificado-bancario");
     }
 
     if (shareholderCompositionPdf instanceof File && shareholderCompositionPdf.size > 0) {
-      shareholderCompositionPdfPath = await persistPdf(shareholderCompositionPdf, "composicion-accionaria");
+      shareholderCompositionPdfPath = await persistKycPdf(shareholderCompositionPdf, "composicion-accionaria");
     }
 
     await ensureKycSchema();
