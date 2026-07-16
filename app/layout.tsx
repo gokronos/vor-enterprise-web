@@ -63,6 +63,9 @@ export default function RootLayout({
                 <a href="https://wa.me/573170237112" target="_blank" rel="noopener noreferrer" className="site-footer__button site-footer__button--whatsapp">
                   WhatsApp
                 </a>
+                <a href="https://www.instagram.com/vor_enterprise" target="_blank" rel="noopener noreferrer" className="site-footer__button site-footer__button--instagram">
+                  Instagram
+                </a>
               </div>
             </div>
           </div>
