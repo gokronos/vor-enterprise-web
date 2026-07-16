@@ -1,5 +1,5 @@
 import mysql, { Pool } from "mysql2/promise";
-import { hashPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
 
 let pool: Pool | null = null;
 
@@ -128,7 +128,7 @@ export async function ensureKycSchema(): Promise<void> {
   if (adminUsername && adminPassword.length >= 12) {
     const [adminRows] = await db.query(
       `
-        SELECT id
+        SELECT id, full_name, password_hash
         FROM kyc_admin_users
         WHERE username = ?
         LIMIT 1
@@ -136,14 +136,25 @@ export async function ensureKycSchema(): Promise<void> {
       [adminUsername],
     );
 
-    const adminExists = Array.isArray(adminRows) && adminRows.length > 0;
-    if (!adminExists) {
+    const admin = (Array.isArray(adminRows) ? adminRows : [])[0] as
+      | { id: number; full_name: string; password_hash: string }
+      | undefined;
+    if (!admin) {
       await db.query(
         `
           INSERT INTO kyc_admin_users (username, full_name, password_hash)
           VALUES (?, ?, ?)
         `,
         [adminUsername, adminFullName, hashPassword(adminPassword)],
+      );
+    } else if (!verifyPassword(adminPassword, admin.password_hash) || admin.full_name !== adminFullName) {
+      await db.query(
+        `
+          UPDATE kyc_admin_users
+          SET full_name = ?, password_hash = ?
+          WHERE id = ?
+        `,
+        [adminFullName, hashPassword(adminPassword), admin.id],
       );
     }
   }
